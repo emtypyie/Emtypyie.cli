@@ -5,7 +5,7 @@
 ## Quick install
 
 ```sh
-# Windows (Winget) — SOON
+# Windows (Winget) — {currently in previous versions}
 winget install emtypyie.emtypyie-cli
 
 # Windows (Chocolatey) — SOON
