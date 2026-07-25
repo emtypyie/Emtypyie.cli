@@ -1,4 +1,4 @@
-name: Winget first submission (run once)
+﻿name: Winget first submission (run once)
 
 on:
   workflow_dispatch:
@@ -24,4 +24,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.WINGETCREATE_TOKEN }}
         run: |
-          .\wingetcreate.exe submit manifests/m/myrachane/emtypyie-cli/${{ steps.version.outputs.VERSION }} --token $env:GITHUB_TOKEN
+          .\wingetcreate.exe submit manifests/m/emtypyie/emtypyie-cli/${{ steps.version.outputs.VERSION }} --token $env:GITHUB_TOKEN

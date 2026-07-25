@@ -1,4 +1,4 @@
-/* ─── Wrap/publish module (Node.js) ───
+﻿/* ─── Wrap/publish module (Node.js) ───
  * Provides /wrap command functionality:
  *   /wrap <dir>                  — git stage all changes
  *   /wrap <dir> --commit -m "x"  — stage, commit, push
@@ -199,7 +199,7 @@ async function doRepo(rl, name) {
     console.log('  GIT_USERNAME and GIT_EMAIL must be set. Use /setenv first.');
     return;
   }
-  const res = await ghRequest('GET', `/repos/myrachane/${name}`, env.GITHUB_TOKEN);
+  const res = await ghRequest('GET', `/repos/emtypyie/${name}`, env.GITHUB_TOKEN);
   if (res.status === 404) {
     console.log(`  Repo "${name}" not found on GitHub.`);
     const ans = await askYesNo(rl, 'Create it?');
@@ -209,7 +209,7 @@ async function doRepo(rl, name) {
       console.log(`  ✔ Repo "${name}" created.`);
       const cwd = process.cwd();
       if (fs.existsSync(path.join(cwd, '.git'))) {
-        run(`git remote add origin https://${env.GITHUB_TOKEN}@github.com/myrachane/${name}.git`, cwd);
+        run(`git remote add origin https://${env.GITHUB_TOKEN}@github.com/emtypyie/${name}.git`, cwd);
         const msg = await question(rl, 'Initial commit message:');
         gitAdd(cwd);
         run(`git -c user.name="${env.GIT_USERNAME}" -c user.email="${env.GIT_EMAIL}" commit -m "${(msg || 'initial').replace(/"/g, '\\"')}"`, cwd);
@@ -230,7 +230,7 @@ async function doRepo(rl, name) {
     const msg = await question(rl, 'Commit message for PR:');
     gitCommitPush(cwd, msg || 'update');
     run(`git push -u origin ${branchName}`, cwd);
-    const prRes = await ghRequest('POST', `/repos/myrachane/${name}/pulls`, env.GITHUB_TOKEN, {
+    const prRes = await ghRequest('POST', `/repos/emtypyie/${name}/pulls`, env.GITHUB_TOKEN, {
       title: msg || 'Update',
       head: branchName,
       base: 'main',
@@ -241,7 +241,7 @@ async function doRepo(rl, name) {
       console.log(`  ✔ PR #${prNum} created.`);
       const mergeAns = await askYesNo(rl, 'Merge the PR?');
       if (mergeAns) {
-        const mergeRes = await ghRequest('PUT', `/repos/myrachane/${name}/pulls/${prNum}/merge`, env.GITHUB_TOKEN, {
+        const mergeRes = await ghRequest('PUT', `/repos/emtypyie/${name}/pulls/${prNum}/merge`, env.GITHUB_TOKEN, {
           merge_method: 'merge'
         });
         if (mergeRes.status === 200) {

@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 on:
   push:
@@ -198,5 +198,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.WINGETCREATE_TOKEN }}
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
-          $installerUrl = "https://github.com/myrachane/emtypyie-cli/releases/download/v$version/emtypyie-cli-native-windows-x64-$version.zip"
-          .\wingetcreate.exe update myrachane.emtypyie-cli --version $version --urls $installerUrl --submit --token $env:GITHUB_TOKEN
+          $installerUrl = "https://github.com/emtypyie/emtypyie-cli/releases/download/v$version/emtypyie-cli-native-windows-x64-$version.zip"
+          .\wingetcreate.exe update emtypyie.emtypyie-cli --version $version --urls $installerUrl --submit --token $env:GITHUB_TOKEN

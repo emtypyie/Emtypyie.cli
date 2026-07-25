@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -94,7 +94,7 @@ static const char *ANIM_LINES[] = {
     "[  OK  ] History file: ~/.emtypyie/history (1000 entries)",
     "[  OK  ] Log level: INFO (default), DEBUG available via --verbose",
     "[  OK  ] Telemetry: disabled (opt-in only)",
-    "[  OK  ] Update channel: stable (github.com/myrachane/Emtypyie.cli)",
+    "[  OK  ] Update channel: stable (github.com/emtypyie/Emtypyie.cli)",
     "[  OK  ] Version check: current 2.5.5, latest 2.5.5 (up to date)",
     "[  OK  ] Plugin system: 0 external plugins loaded",
     "[  OK  ] Sandbox: project isolation via separate working dirs",

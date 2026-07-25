@@ -1,4 +1,4 @@
-#include "shell.h"
+﻿#include "shell.h"
 #include "theme.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,7 +115,7 @@ static void add_history(const char *line) {
 bool self_update(void) {
     printf("  %s\n", retro("Checking for updates..."));
     FetchResult *r = fetch_get_with_timeout(
-        "https://api.github.com/repos/myrachane/Emtypyie.cli/releases/latest", 15);
+        "https://api.github.com/repos/emtypyie/Emtypyie.cli/releases/latest", 15);
     if (!r || r->status_code != 200 || !r->body) {
         printf("  %s\n", retro_err("Could not reach update server"));
         if (r) fetch_free(r);
@@ -444,9 +444,9 @@ static void handle_command(const char *input) {
     if (strcmp(cmd, "changelog") == 0) {
         printf("  %s\n", retro("Opening changelog..."));
 #ifdef _WIN32
-        system("start https://github.com/myrachane/emtypyie-cli/releases");
+        system("start https://github.com/emtypyie/emtypyie-cli/releases");
 #else
-        system("xdg-open https://github.com/myrachane/emtypyie-cli/releases");
+        system("xdg-open https://github.com/emtypyie/emtypyie-cli/releases");
 #endif
         return;
     }

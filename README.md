@@ -1,12 +1,12 @@
-# Emtypyie.cli@v3.0.0 
+﻿# Emtypyie.cli@v3.0.0 
 
 > Run emtypyie projects from your terminal with ease — the future runtime engine.
 
 ## Quick install
 
 ```sh
-# Windows (Winget) — {Currently In Older Versions}
-winget install myrachane.emtypyie-cli
+# Windows (Winget) — SOON
+winget install emtypyie.emtypyie-cli
 
 # Windows (Chocolatey) — SOON
 choco install emtypyie-cli

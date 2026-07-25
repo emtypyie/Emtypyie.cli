@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /* ─── emtypyie-cli main entry point (Node.js version) ───
  * Provides an interactive shell (REPL) and direct command execution.
@@ -406,7 +406,7 @@ async function doIssue(arg) {
     return;
   }
 
-  const repoPath = proj.repo || `myrachane/${name}`;
+  const repoPath = proj.repo || `emtypyie/${name}`;
   let url;
   if (message) {
     url = `https://github.com/${repoPath}/issues/new?title=${encodeURIComponent(message)}`;
@@ -537,7 +537,7 @@ async function doDocs(arg) {
     console.log(t.retroErr(err.message));
     return;
   }
-  const repo = proj.repo || `myrachane/${arg}`;
+  const repo = proj.repo || `emtypyie/${arg}`;
   const url = `https://github.com/${repo}#readme`;
   console.log(t.retro(`  Opening docs for ${t.retroAccent(proj.name || arg)}...`));
   if (openBrowser(url)) {
@@ -548,7 +548,7 @@ async function doDocs(arg) {
 }
 
 function doChangelog() {
-  const url = 'https://github.com/myrachane/emtypyie-cli/releases';
+  const url = 'https://github.com/emtypyie/emtypyie-cli/releases';
   console.log(t.retro('  Opening changelog...'));
   if (openBrowser(url)) {
     console.log(t.retroDim('  Browser opened.'));

@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
@@ -110,7 +110,7 @@ app.whenReady().then(() => {
 
   // ─── Update flow: Node-side GitHub check + native zip apply ───
   const WRAPPER_VERSION = '1.0.1';
-  const REPO = 'myrachane/Emtypyie.cli';
+  const REPO = 'emtypyie/Emtypyie.cli';
 
   function httpsJson(url) {
     return new Promise((resolve, reject) => {

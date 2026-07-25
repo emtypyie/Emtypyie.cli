@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /* ─── emtypyie-cli main entry point (Node.js version) ───
  * Provides an interactive shell (REPL) and direct command execution.
@@ -118,7 +118,7 @@ const ANIM_LINES = [
   '[  OK  ] History file: ~/.emtypyie/history (1000 entries)',
   '[  OK  ] Log level: INFO (default), DEBUG available via --verbose',
   '[  OK  ] Telemetry: disabled (opt-in only)',
-  '[  OK  ] Update channel: stable (github.com/myrachane/Emtypyie.cli)',
+  '[  OK  ] Update channel: stable (github.com/emtypyie/Emtypyie.cli)',
   '[  OK  ] Version check: current 2.5.5, latest 2.5.5 (up to date)',
   '[  OK  ] Plugin system: 0 external plugins loaded',
   '[  OK  ] Sandbox: project isolation via separate working dirs',
@@ -521,7 +521,7 @@ async function doIssue(arg) {
     return;
   }
 
-  const repoPath = proj.repo || `myrachane/${name}`;
+  const repoPath = proj.repo || `emtypyie/${name}`;
   let url;
   if (message) {
     url = `https://github.com/${repoPath}/issues/new?title=${encodeURIComponent(message)}`;
@@ -646,7 +646,7 @@ async function doDocs(arg) {
     console.log(t.retroErr(err.message));
     return;
   }
-  const repo = proj.repo || `myrachane/${arg}`;
+  const repo = proj.repo || `emtypyie/${arg}`;
   const url = `https://github.com/${repo}#readme`;
   console.log(t.retro(`  Opening docs for ${t.retroAccent(proj.name || arg)}...`));
   if (openBrowser(url)) {
@@ -657,7 +657,7 @@ async function doDocs(arg) {
 }
 
 function doChangelog() {
-  const url = 'https://github.com/myrachane/emtypyie-cli/releases';
+  const url = 'https://github.com/emtypyie/emtypyie-cli/releases';
   console.log(t.retro('  Opening changelog...'));
   if (openBrowser(url)) {
     console.log(t.retroDim('  Browser opened.'));

@@ -1,4 +1,4 @@
-#include "shell.h"
+﻿#include "shell.h"
 #include "theme.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -298,9 +298,9 @@ static void handle_command(const char *input) {
     if (strcmp(cmd, "changelog") == 0) {
         printf("  %s\n", retro("Opening changelog..."));
 #ifdef _WIN32
-        system("start https://github.com/myrachane/emtypyie-cli/releases");
+        system("start https://github.com/emtypyie/emtypyie-cli/releases");
 #else
-        system("xdg-open https://github.com/myrachane/emtypyie-cli/releases");
+        system("xdg-open https://github.com/emtypyie/emtypyie-cli/releases");
 #endif
         return;
     }

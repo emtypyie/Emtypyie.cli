@@ -1,4 +1,4 @@
-{
+﻿{
   "version": "2.5.4",
   "description": "Emtypyie CLI startup boot animation - Linux kernel style",
   "timing": {
@@ -88,7 +88,7 @@
     "[  OK  ] History file: ~/.emtypyie/history (1000 entries)",
     "[  OK  ] Log level: INFO (default), DEBUG available via --verbose",
     "[  OK  ] Telemetry: disabled (opt-in only)",
-    "[  OK  ] Update channel: stable (github.com/myrachane/Emtypyie.cli)",
+    "[  OK  ] Update channel: stable (github.com/emtypyie/Emtypyie.cli)",
     "[  OK  ] Version check: current 2.5.3, latest 2.5.3 (up to date)",
     "[  OK  ] Plugin system: 0 external plugins loaded",
     "[  OK  ] Sandbox: project isolation via separate working dirs",

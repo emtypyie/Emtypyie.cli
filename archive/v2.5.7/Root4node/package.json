@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "emtypyie-cli",
   "version": "2.5.7",
   "releaseDate": "2026-07-17",
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/myrachane/emtypyie-cli.git"
+    "url": "git+https://github.com/emtypyie/emtypyie-cli.git"
   },
   "keywords": [
     "emtypyie",
