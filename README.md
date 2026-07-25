@@ -6,7 +6,7 @@
 
 ```sh
 # Windows (Winget) — {currently in previous versions}
-winget install emtypyie.emtypyie-cli
+winget install myrachane.emtypyie-cli
 
 # Windows (Chocolatey) — SOON
 choco install emtypyie-cli
