@@ -14,8 +14,6 @@ jobs:
   submit:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Extract version
         id: version
         shell: bash
@@ -23,15 +21,14 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           VERSION="${VERSION#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "VTAG=v$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Package Windows x64 ZIP
+      - name: Get SHA from release asset
+        id: sha
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
-          $zip = "emtypyie-cli-windows-x64-$version.zip"
-          Compress-Archive -Path "archive/v$version/Root4node/dist/emtypyie.exe" -DestinationPath $zip -Force
-          $sha = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip.sha256"
+          $sha = (Invoke-WebRequest -Uri $url).Content.Split(" ")[0].Trim()
           "SHA256=$sha" | Out-File -FilePath "$env:GITHUB_ENV" -Append
 
       - name: Create winget manifest and submit PR
@@ -42,7 +39,6 @@ jobs:
           $version = "${{ steps.version.outputs.VERSION }}"
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip"
           $sha = $env:SHA256
-          $date = (Get-Date).ToString("yyyy.MM.dd")
 
           $versionManifest = @"
           PackageIdentifier: emtypyie.cli
@@ -110,12 +106,16 @@ jobs:
             parents = @($sha)
           } | ConvertTo-Json -Compress)
 
-          Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$repo/git/refs/heads/$branch" -Headers $headers -Body (@{
-            sha = $commit.sha
-            force = $true
-          } | ConvertTo-Json -Compress) 2>$null
+          $created = $false
+          try {
+            Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$repo/git/refs/heads/$branch" -Headers $headers -Body (@{
+              sha = $commit.sha
+              force = $true
+            } | ConvertTo-Json -Compress)
+            $created = $true
+          } catch {}
 
-          if ($LASTEXITCODE -ne 0) {
+          if (-not $created) {
             Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/git/refs" -Headers $headers -Body (@{
               ref = "refs/heads/$branch"
               sha = $commit.sha
