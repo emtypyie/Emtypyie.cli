@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   build-node:
@@ -155,7 +156,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          REPO="emtypyie-cli"
+          REPO="Emtypyie.cli"
           gh release delete-asset "$TAG" "${REPO}-${TAG}.zip" --yes 2>/dev/null || true
           gh release delete-asset "$TAG" "${REPO}-${TAG}.tar.gz" --yes 2>/dev/null || true
 
@@ -176,6 +177,32 @@ jobs:
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-github-packages:
+    needs: build-node
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: '@emtypyie'
+      - name: Set package scope
+        working-directory: archive/${{ github.ref_name }}/Root4node
+        run: |
+          node -e "const p=require('./package.json'); p.name='@emtypyie/emtypyie-cli'; require('fs').writeFileSync('package.json',JSON.stringify(p,null,2))"
+      - name: Install dependencies
+        working-directory: archive/${{ github.ref_name }}/Root4node
+        run: npm ci
+      - name: Publish to GitHub Packages
+        working-directory: archive/${{ github.ref_name }}/Root4node
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-winget:
     needs: build-c

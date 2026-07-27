@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node cli.js",
-    "build": "pkg cli.js --targets node20-win-x64 --output dist/emtypyie.exe",
+    "build": "pkg cli.js --targets node16-win-x64 --output dist/emtypyie.exe",
     "prepublishOnly": "node -e \"console.log('Publishing emtypyie-cli v' + require('./package.json').version)\""
   },
   "pkg": {
