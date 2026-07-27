@@ -17,80 +17,21 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            DIR=$(ls -d archive/v* | sort -V | tail -1)
-            VERSION=$(node -p "require('./$DIR/Root4node/package.json').version")
-          fi
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Download wingetcreate
         run: Invoke-WebRequest -Uri "https://aka.ms/wingetcreate/latest" -OutFile "wingetcreate.exe"
 
-      - name: Create manifest
-        shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.VERSION }}"
-          $manifestDir = "manifests/e/emtypyie/emtypyie.cli/$version"
-          New-Item -ItemType Directory -Path $manifestDir -Force | Out-Null
-
-          # Installer manifest
-          @"
-          PackageIdentifier: emtypyie.cli
-          PackageVersion: $version
-          Platform:
-            - Windows.Desktop
-          MinimumOSVersion: 10.0.17763.0
-          InstallerType: zip
-          Installers:
-            - Architecture: x64
-              InstallerUrl: https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip
-              InstallerSha256: REPLACE_WITH_SHA256
-          ManifestType: installer
-          ManifestVersion: 1.6.0
-          "@ | Set-Content "$manifestDir/emtypyie.cli.installer.yaml"
-
-          # Locale manifest
-          @"
-          PackageIdentifier: emtypyie.cli
-          PackageVersion: $version
-          PackageLocale: en-US
-          Publisher: emtypyie
-          PackageName: emtypyie-cli
-          ShortDescription: Run emtypyie projects from your terminal
-          Description: >
-            EMTYPYIE CLI - run emtypyie projects from your terminal with ease.
-            The future runtime engine.
-          License: Proprietary
-          Copyright: Copyright (c) 2026 EMTYPYIE
-          Tags:
-            - cli
-            - emtypyie
-            - runtime
-            - developer-tools
-          ManifestType: defaultLocale
-          ManifestVersion: 1.6.0
-          "@ | Set-Content "$manifestDir/emtypyie.cli.yaml"
-
-          # Version manifest
-          @"
-          PackageIdentifier: emtypyie.cli
-          PackageVersion: $version
-          DefaultLocale: en-US
-          ManifestType: version
-          ManifestVersion: 1.6.0
-          "@ | Set-Content "$manifestDir/emtypyie.cli.locale.en-US.yaml"
-
-          Write-Host "Manifests created in $manifestDir"
-
-      - name: Create PR to winget-pkgs
+      - name: Submit new package to winget-pkgs
         env:
           GITHUB_TOKEN: ${{ secrets.WINGETCREATE_TOKEN }}
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
-          .\wingetcreate.exe update emtypyie.cli `
+
+          .\wingetcreate.exe new `
             --version $version `
             --urls "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip" `
             --submit `
