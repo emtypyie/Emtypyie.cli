@@ -165,15 +165,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          echo "VTAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
       - name: Install dependencies
-        working-directory: archive/${{ github.ref_name }}/Root4node
+        working-directory: archive/${{ steps.version.outputs.VTAG }}/Root4node
         run: npm ci
       - name: Publish to npm
-        working-directory: archive/${{ github.ref_name }}/Root4node
+        working-directory: archive/${{ steps.version.outputs.VTAG }}/Root4node
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -186,20 +193,27 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          echo "VTAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://npm.pkg.github.com
           scope: '@emtypyie'
       - name: Set package scope
-        working-directory: archive/${{ github.ref_name }}/Root4node
+        working-directory: archive/${{ steps.version.outputs.VTAG }}/Root4node
         run: |
           node -e "const p=require('./package.json'); p.name='@emtypyie/emtypyie-cli'; require('fs').writeFileSync('package.json',JSON.stringify(p,null,2))"
       - name: Install dependencies
-        working-directory: archive/${{ github.ref_name }}/Root4node
+        working-directory: archive/${{ steps.version.outputs.VTAG }}/Root4node
         run: npm ci
       - name: Publish to GitHub Packages
-        working-directory: archive/${{ github.ref_name }}/Root4node
+        working-directory: archive/${{ steps.version.outputs.VTAG }}/Root4node
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
