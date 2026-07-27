@@ -283,13 +283,29 @@ jobs:
             Accept = "application/vnd.github.v3+json"
           }
 
-          $repo = "microsoft/winget-pkgs"
-          $defaultBranch = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo" -Headers $headers).default_branch
+          $upstream = "microsoft/winget-pkgs"
+          $fork = "emtypyie/winget-pkgs"
+          $defaultBranch = (Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream" -Headers $headers).default_branch
 
-          $sha = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/git/ref/heads/$defaultBranch" -Headers $headers).object.sha
+          $upstreamSha = (Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream/git/ref/heads/$defaultBranch" -Headers $headers).object.sha
 
-          $tree = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/git/trees" -Headers $headers -Body (@{
-            base_tree = $sha
+          try { Invoke-RestMethod -Uri "https://api.github.com/repos/$fork" -Headers $headers | Out-Null } catch {
+            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$upstream/forks" -Headers $headers | Out-Null
+            Start-Sleep -Seconds 5
+          }
+
+          $forkDefault = (Invoke-RestMethod -Uri "https://api.github.com/repos/$fork" -Headers $headers).default_branch
+          if ($forkDefault -ne $defaultBranch) {
+            $forkRef = (Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/ref/heads/$forkDefault" -Headers $headers).object.sha
+            try { Invoke-RestMethod -Method Delete -Uri "https://api.github.com/repos/$fork/git/refs/heads/$forkDefault" -Headers $headers | Out-Null } catch {}
+            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/refs" -Headers $headers -Body (@{
+              ref = "refs/heads/$defaultBranch"
+              sha = $forkRef
+            } | ConvertTo-Json -Compress) | Out-Null
+          }
+
+          $tree = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/trees" -Headers $headers -Body (@{
+            base_tree = $upstreamSha
             tree = @(
               @{ path = "$base/emtypyie.cli.yaml"; content = $versionManifest; mode = "100644"; type = "blob" }
               @{ path = "$base/emtypyie.cli.installer.yaml"; content = $installerManifest; mode = "100644"; type = "blob" }
@@ -297,15 +313,15 @@ jobs:
             )
           } | ConvertTo-Json -Depth 5 -Compress)
 
-          $commit = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/git/commits" -Headers $headers -Body (@{
+          $commit = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/commits" -Headers $headers -Body (@{
             message = "Add emtypyie.cli v$version"
             tree = $tree.sha
-            parents = @($sha)
+            parents = @($upstreamSha)
           } | ConvertTo-Json -Compress)
 
           $created = $false
           try {
-            Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$repo/git/refs/heads/$branch" -Headers $headers -Body (@{
+            Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$fork/git/refs/heads/$defaultBranch" -Headers $headers -Body (@{
               sha = $commit.sha
               force = $true
             } | ConvertTo-Json -Compress)
@@ -313,15 +329,15 @@ jobs:
           } catch {}
 
           if (-not $created) {
-            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/git/refs" -Headers $headers -Body (@{
-              ref = "refs/heads/$branch"
+            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/refs" -Headers $headers -Body (@{
+              ref = "refs/heads/$defaultBranch"
               sha = $commit.sha
             } | ConvertTo-Json -Compress)
           }
 
-          $pr = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/pulls" -Headers $headers -Body (@{
+          $pr = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$upstream/pulls" -Headers $headers -Body (@{
             title = "Add emtypyie.cli v$version"
-            head = $branch
+            head = "emtypyie:$defaultBranch"
             base = $defaultBranch
             body = @"
           ## emtypyie.cli v$version
