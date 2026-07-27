@@ -179,7 +179,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-github-packages:
-    needs: build-node
+    needs: [build-node, create-release]
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -158,7 +158,7 @@ jobs:
           gh release delete-asset "$TAG" "${REPO}-${TAG}.tar.gz" --yes 2>/dev/null || true
 
   publish-github-packages:
-    needs: build-node
+    needs: [build-node, create-release]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -171,14 +171,14 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: '@emtypyie'
       - name: Set package scope
-        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        working-directory: archive/v${{ github.event.inputs.version }}/Root4node
         run: |
           node -e "const p=require('./package.json'); p.name='@emtypyie/emtypyie-cli'; require('fs').writeFileSync('package.json',JSON.stringify(p,null,2))"
       - name: Install dependencies
-        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        working-directory: archive/v${{ github.event.inputs.version }}/Root4node
         run: npm ci
       - name: Publish to GitHub Packages
-        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        working-directory: archive/v${{ github.event.inputs.version }}/Root4node
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
