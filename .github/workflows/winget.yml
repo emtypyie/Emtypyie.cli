@@ -40,46 +40,13 @@ jobs:
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip"
           $sha = $env:SHA256
 
-          $versionManifest = @"
-          PackageIdentifier: emtypyie.cli
-          PackageVersion: $version
-          DefaultLocale: en-US
-          ManifestType: merged
-          ManifestVersion: 1.9.0
-          "@
-
-          $installerManifest = @"
-          PackageIdentifier: emtypyie.cli
-          PackageVersion: $version
-          Platform:
-          - Windows.Desktop
-          MinimumOSVersion: 10.0.17763.0
-          InstallerType: zip
-          Installers:
-          - Architecture: x64
-            InstallerUrl: $url
-            InstallerSha256: $sha
-          ManifestType: merged
-          ManifestVersion: 1.9.0
-          "@
-
-          $localeManifest = @"
-          PackageIdentifier: emtypyie.cli
-          PackageVersion: $version
-          PackageLocale: en-US
-          Publisher: emtypyie
-          PackageName: emtypyie-cli
-          ShortDescription: Emtypyie CLI — Run emtypyie projects from your terminal with ease
-          Description: |
-            Emtypyie CLI allows you to create, manage, and run emtypyie projects directly from your terminal.
-            Supports themes, bakafetch, runtime installation, and more.
-          License: Proprietary
-          ManifestType: merged
-          ManifestVersion: 1.9.0
-          "@
-
-          $branch = "emtypyie.cli-$version"
           $base = "manifests/e/emtypyie/cli"
+
+          $versionManifest = "PackageIdentifier: emtypyie.cli`nPackageVersion: $version`nDefaultLocale: en-US`nManifestType: version`nManifestVersion: 1.9.0"
+
+          $installerManifest = "PackageIdentifier: emtypyie.cli`nPackageVersion: $version`nPlatform:`n- Windows.Desktop`nMinimumOSVersion: 10.0.17763.0`nInstallerType: zip`nInstallers:`n- Architecture: x64`n  InstallerUrl: $url`n  InstallerSha256: $sha`nManifestType: installer`nManifestVersion: 1.9.0"
+
+          $localeManifest = "PackageIdentifier: emtypyie.cli`nPackageVersion: $version`nPackageLocale: en-US`nPublisher: emtypyie`nPackageName: emtypyie-cli`nShortDescription: Emtypyie CLI - Run emtypyie projects from your terminal with ease`nDescription: Emtypyie CLI allows you to create, manage, and run emtypyie projects directly from your terminal.`nLicense: Proprietary`nManifestType: defaultLocale`nManifestVersion: 1.9.0"
 
           $headers = @{
             Authorization = "token $env:GH_TOKEN"
@@ -89,22 +56,11 @@ jobs:
           $upstream = "microsoft/winget-pkgs"
           $fork = "emtypyie/winget-pkgs"
           $defaultBranch = (Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream" -Headers $headers).default_branch
-
           $upstreamSha = (Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream/git/ref/heads/$defaultBranch" -Headers $headers).object.sha
 
           try { Invoke-RestMethod -Uri "https://api.github.com/repos/$fork" -Headers $headers | Out-Null } catch {
             Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$upstream/forks" -Headers $headers | Out-Null
             Start-Sleep -Seconds 5
-          }
-
-          $forkDefault = (Invoke-RestMethod -Uri "https://api.github.com/repos/$fork" -Headers $headers).default_branch
-          if ($forkDefault -ne $defaultBranch) {
-            $forkRef = (Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/ref/heads/$forkDefault" -Headers $headers).object.sha
-            try { Invoke-RestMethod -Method Delete -Uri "https://api.github.com/repos/$fork/git/refs/heads/$forkDefault" -Headers $headers | Out-Null } catch {}
-            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/refs" -Headers $headers -Body (@{
-              ref = "refs/heads/$defaultBranch"
-              sha = $forkRef
-            } | ConvertTo-Json -Compress) | Out-Null
           }
 
           $tree = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/trees" -Headers $headers -Body (@{
@@ -122,37 +78,18 @@ jobs:
             parents = @($upstreamSha)
           } | ConvertTo-Json -Compress)
 
-          $created = $false
+          $branchName = "emtypyie-cli-v$version"
           try {
-            Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$fork/git/refs/heads/$defaultBranch" -Headers $headers -Body (@{
-              sha = $commit.sha
-              force = $true
-            } | ConvertTo-Json -Compress)
-            $created = $true
-          } catch {}
-
-          if (-not $created) {
-            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/refs" -Headers $headers -Body (@{
-              ref = "refs/heads/$defaultBranch"
-              sha = $commit.sha
-            } | ConvertTo-Json -Compress)
+            Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$fork/git/refs/heads/$branchName" -Headers $headers -Body (@{ sha = $commit.sha; force = $true } | ConvertTo-Json -Compress) | Out-Null
+          } catch {
+            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/refs" -Headers $headers -Body (@{ ref = "refs/heads/$branchName"; sha = $commit.sha } | ConvertTo-Json -Compress) | Out-Null
           }
 
           $pr = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$upstream/pulls" -Headers $headers -Body (@{
             title = "Add emtypyie.cli v$version"
-            head = "emtypyie:$defaultBranch"
+            head = "emtypyie:$branchName"
             base = $defaultBranch
-            body = @"
-          ## emtypyie.cli v$version
-
-          - **Package Identifier**: emtypyie.cli
-          - **Version**: $version
-          - **Installer URL**: $url
-          - **Installer SHA256**: $sha
-          - **Installer Type**: zip
-
-          Auto-submitted by Emtypyie.cli release workflow.
-          "@
+            body = "Add emtypyie.cli v$version`n`n- Installer URL: $url`n- Installer SHA256: $sha`n- Installer Type: zip"
           } | ConvertTo-Json -Depth 5)
 
           Write-Host "PR created: $($pr.html_url)"
