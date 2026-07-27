@@ -1,0 +1,145 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 3.0.1)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-node:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "VTAG=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pkg binaries
+        uses: actions/cache@v4
+        with:
+          path: ~\.pkg-cache
+          key: pkg-cache-${{ runner.os }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: npm ci
+
+      - name: Build standalone executable (pkg)
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: npm run build
+
+      - name: Package Windows x64 ZIP
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.VERSION }}"
+          $src = "archive/v$version/Root4node/dist/emtypyie.exe"
+          $zip = "archive/v$version/Root4node/dist/emtypyie-cli-windows-x64-$version.zip"
+          Compress-Archive -Path $src -DestinationPath $zip -Force
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  emtypyie-cli-windows-x64-$version.zip" | Out-File -FilePath "$zip.sha256" -Encoding ascii
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-build
+          path: archive/v${{ steps.version.outputs.VERSION }}/Root4node/dist/emtypyie-cli-windows-x64-${{ steps.version.outputs.VERSION }}.zip*
+          if-no-files-found: error
+
+  build-c:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up MSYS2 (mingw-w64 gcc/g++)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+
+      - name: Build C native executable
+        shell: msys2 {0}
+        run: |
+          cd "archive/v${{ steps.version.outputs.VERSION }}/Root4c"
+          SRC=src
+          LIB=lib
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o main.o $SRC/main.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o shell.o $SRC/shell.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o theme.o $SRC/theme.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o util.o $SRC/util.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o fetch.o $SRC/fetch.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o download.o $SRC/download.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o project.o $SRC/project.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o bakafetch.o $SRC/bakafetch.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o runtime.o $SRC/runtime.c
+          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o auth.o $SRC/auth.c
+          g++ -std=c++17 -Wall -Wextra -I $SRC -I $LIB -c -o larpino.o $SRC/larpino.cpp
+          gcc -c -I $LIB -o cJSON.o $LIB/cJSON.c
+          g++ -o emtypyie.exe main.o shell.o theme.o util.o fetch.o download.o project.o bakafetch.o runtime.o auth.o larpino.o cJSON.o -lwinhttp -lstdc++
+
+      - name: Package native Windows x64 ZIP
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.VERSION }}"
+          $src = "archive/v$version/Root4c/emtypyie.exe"
+          $zip = "archive/v$version/Root4c/emtypyie-cli-native-windows-x64-$version.zip"
+          Compress-Archive -Path $src -DestinationPath $zip -Force
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  emtypyie-cli-native-windows-x64-$version.zip" | Out-File -FilePath "$zip.sha256" -Encoding ascii
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-build
+          path: archive/v${{ steps.version.outputs.VERSION }}/Root4c/emtypyie-cli-native-windows-x64-${{ steps.version.outputs.VERSION }}.zip*
+          if-no-files-found: error
+
+  create-release:
+    needs: [build-node, build-c]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: node-build
+          path: node-artifacts
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: c-build
+          path: c-artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: v${{ github.event.inputs.version }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            node-artifacts/*
+            c-artifacts/*
