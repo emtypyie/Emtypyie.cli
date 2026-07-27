@@ -173,7 +173,7 @@ jobs:
         run: npm ci
       - name: Publish to npm
         working-directory: archive/${{ github.ref_name }}/Root4node
-        run: npm publish || echo "npm publish skipped (version may already exist)"
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -198,5 +198,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.WINGETCREATE_TOKEN }}
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
-          $installerUrl = "https://github.com/emtypyie/emtypyie-cli/releases/download/v$version/emtypyie-cli-native-windows-x64-$version.zip"
-          .\wingetcreate.exe update emtypyie.emtypyie-cli --version $version --urls $installerUrl --submit --token $env:GITHUB_TOKEN
+          $installerUrl = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-native-windows-x64-$version.zip"
+          .\wingetcreate.exe update emtypyie.cli --version $version --urls $installerUrl --submit --token $env:GITHUB_TOKEN

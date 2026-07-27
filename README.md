@@ -1,4 +1,6 @@
-﻿# Emtypyie.cli@v3.0.0 
+﻿# Emtypyie.cli@v3.0.1 
+
+![Emtypyie CLI](Emtypyie.cli.png)
 
 > Run emtypyie projects from your terminal with ease — the future runtime engine.
 
@@ -11,8 +13,8 @@ winget install myrachane.emtypyie-cli
 # Windows (Chocolatey) — SOON
 choco install emtypyie-cli
 
-# npm (all platforms) — v3.0.0 Not Released Yet
-npm install emtypyie-cli
+# npm (all platforms)
+npm install -g emtypyie-cli
 ```
 
 ## Launch — C CLI
@@ -128,6 +130,6 @@ Each GitHub release ships three Windows artifacts:
 
 | ZIP | Contents | Source |
 |-----|----------|--------|
-| `emtypyie-cli-windows-x64-3.0.0.zip` | `emtypyie.exe` | Node.js (pkg) — NOT PUBLISHED |
-| `emtypyie-cli-native-windows-x64-3.0.0.zip` | `emtypyie.exe` | C native build |
+| `emtypyie-cli-windows-x64-3.0.1.zip` | `emtypyie.exe` | Node.js (pkg) — npm release |
+| `emtypyie-cli-native-windows-x64-3.0.1.zip` | `emtypyie.exe` | C native build |
 | `emtypyie.cli-Wrapper.zip` | `emtypyieWrapper.exe` + resources | Electron GUI wrapper |

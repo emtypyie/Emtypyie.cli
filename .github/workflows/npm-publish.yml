@@ -1,0 +1,50 @@
+name: npm Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v3.0.1)'
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: npm ci
+
+      - name: Verify package version
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$PKG_VERSION" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "ERROR: package.json version ($PKG_VERSION) does not match input (${{ steps.version.outputs.VERSION }})"
+            exit 1
+          fi
+
+      - name: Dry run
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: npm pack --dry-run
+
+      - name: Publish to npm
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
