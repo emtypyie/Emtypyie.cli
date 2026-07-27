@@ -28,7 +28,7 @@ jobs:
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip.sha256"
-          $sha = (Invoke-WebRequest -Uri $url).Content.Split(" ")[0].Trim()
+          $sha = ([System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest -Uri $url).Content)).Split(" ")[0].Trim()
           "SHA256=$sha" | Out-File -FilePath "$env:GITHUB_ENV" -Append
 
       - name: Create winget manifest and submit PR

@@ -235,7 +235,7 @@ jobs:
           $version = "${{ steps.version.outputs.VERSION }}"
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip"
 
-          $installerSha = (Invoke-WebRequest -Uri "$url.sha256").Content.Split(" ")[0].Trim()
+          $installerSha = ([System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest -Uri "$url.sha256").Content)).Split(" ")[0].Trim()
 
           $versionManifest = @"
           PackageIdentifier: emtypyie.cli
