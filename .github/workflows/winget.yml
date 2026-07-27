@@ -30,9 +30,7 @@ jobs:
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
+          $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip"
 
-          .\wingetcreate.exe new `
-            --version $version `
-            --urls "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip" `
-            --submit `
+          .\wingetcreate.exe new $url `
             --token $env:GITHUB_TOKEN
