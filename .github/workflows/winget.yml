@@ -72,5 +72,8 @@ jobs:
           $version = "${{ steps.version.outputs.VERSION }}"
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip"
 
-          .\wingetcreate.exe new $url `
+          .\wingetcreate.exe update emtypyie.cli `
+            --version $version `
+            --urls $url `
+            --submit `
             --token $env:GITHUB_TOKEN
