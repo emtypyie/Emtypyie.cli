@@ -25,55 +25,118 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "VTAG=v$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Cache pkg binaries
-        uses: actions/cache@v4
-        with:
-          path: ~\.pkg-cache
-          key: pkg-cache-${{ runner.os }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
-        run: npm ci
-
-      - name: Build standalone executable (pkg)
-        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
-        run: npm run build
-
       - name: Package Windows x64 ZIP
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
-          $src = "archive/v$version/Root4node/dist/emtypyie.exe"
-          $zip = "archive/v$version/Root4node/dist/emtypyie-cli-windows-x64-$version.zip"
-          Compress-Archive -Path $src -DestinationPath $zip -Force
-          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
-          "$hash  emtypyie-cli-windows-x64-$version.zip" | Out-File -FilePath "$zip.sha256" -Encoding ascii
+          $zip = "emtypyie-cli-windows-x64-$version.zip"
+          Compress-Archive -Path "archive/v$version/Root4node/dist/emtypyie.exe" -DestinationPath $zip -Force
+          $sha = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "SHA256=$sha" | Out-File -FilePath "$env:GITHUB_ENV" -Append
 
-      - name: Create or update GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.VERSION }}
-          name: v${{ steps.version.outputs.VERSION }}
-          generate_release_notes: true
-          files: archive/v${{ steps.version.outputs.VERSION }}/Root4node/dist/emtypyie-cli-windows-x64-${{ steps.version.outputs.VERSION }}.zip*
-
-      - name: Download wingetcreate
-        run: Invoke-WebRequest -Uri "https://aka.ms/wingetcreate/latest" -OutFile "wingetcreate.exe"
-
-      - name: Submit to winget-pkgs
-        env:
-          GITHUB_TOKEN: ${{ secrets.WINGETCREATE_TOKEN }}
+      - name: Create winget manifest and submit PR
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.WINGETCREATE_TOKEN }}
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip"
+          $sha = $env:SHA256
+          $date = (Get-Date).ToString("yyyy.MM.dd")
 
-          .\wingetcreate.exe update emtypyie.cli `
-            --version $version `
-            --urls $url `
-            --submit `
-            --token $env:GITHUB_TOKEN
+          $versionManifest = @"
+          PackageIdentifier: emtypyie.cli
+          PackageVersion: $version
+          DefaultLocale: en-US
+          ManifestType: merged
+          ManifestVersion: 1.9.0
+          "@
+
+          $installerManifest = @"
+          PackageIdentifier: emtypyie.cli
+          PackageVersion: $version
+          Platform:
+          - Windows.Desktop
+          MinimumOSVersion: 10.0.17763.0
+          InstallerType: zip
+          Installers:
+          - Architecture: x64
+            InstallerUrl: $url
+            InstallerSha256: $sha
+          ManifestType: merged
+          ManifestVersion: 1.9.0
+          "@
+
+          $localeManifest = @"
+          PackageIdentifier: emtypyie.cli
+          PackageVersion: $version
+          PackageLocale: en-US
+          Publisher: emtypyie
+          PackageName: emtypyie-cli
+          ShortDescription: Emtypyie CLI — Run emtypyie projects from your terminal with ease
+          Description: |
+            Emtypyie CLI allows you to create, manage, and run emtypyie projects directly from your terminal.
+            Supports themes, bakafetch, runtime installation, and more.
+          License: Proprietary
+          ManifestType: merged
+          ManifestVersion: 1.9.0
+          "@
+
+          $branch = "emtypyie.cli-$version"
+          $base = "manifests/e/emtypyie/cli"
+
+          $headers = @{
+            Authorization = "token $env:GH_TOKEN"
+            Accept = "application/vnd.github.v3+json"
+          }
+
+          $repo = "microsoft/winget-pkgs"
+          $defaultBranch = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo" -Headers $headers).default_branch
+
+          $sha = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/git/ref/heads/$defaultBranch" -Headers $headers).object.sha
+
+          $tree = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/git/trees" -Headers $headers -Body (@{
+            base_tree = $sha
+            tree = @(
+              @{ path = "$base/emtypyie.cli.yaml"; content = $versionManifest; mode = "100644"; type = "blob" }
+              @{ path = "$base/emtypyie.cli.installer.yaml"; content = $installerManifest; mode = "100644"; type = "blob" }
+              @{ path = "$base/emtypyie.cli.locale.en-US.yaml"; content = $localeManifest; mode = "100644"; type = "blob" }
+            )
+          } | ConvertTo-Json -Depth 5 -Compress)
+
+          $commit = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/git/commits" -Headers $headers -Body (@{
+            message = "Add emtypyie.cli v$version"
+            tree = $tree.sha
+            parents = @($sha)
+          } | ConvertTo-Json -Compress)
+
+          Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$repo/git/refs/heads/$branch" -Headers $headers -Body (@{
+            sha = $commit.sha
+            force = $true
+          } | ConvertTo-Json -Compress) 2>$null
+
+          if ($LASTEXITCODE -ne 0) {
+            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/git/refs" -Headers $headers -Body (@{
+              ref = "refs/heads/$branch"
+              sha = $commit.sha
+            } | ConvertTo-Json -Compress)
+          }
+
+          $pr = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/pulls" -Headers $headers -Body (@{
+            title = "Add emtypyie.cli v$version"
+            head = $branch
+            base = $defaultBranch
+            body = @"
+          ## emtypyie.cli v$version
+
+          - **Package Identifier**: emtypyie.cli
+          - **Version**: $version
+          - **Installer URL**: $url
+          - **Installer SHA256**: $sha
+          - **Installer Type**: zip
+
+          Auto-submitted by Emtypyie.cli release workflow.
+          "@
+          } | ConvertTo-Json -Depth 5)
+
+          Write-Host "PR created: $($pr.html_url)"
