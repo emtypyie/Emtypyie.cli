@@ -4,8 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to submit (e.g. 3.0.1)'
+        description: 'Version (e.g. 3.0.1)'
         required: true
+
+permissions:
+  contents: write
 
 jobs:
   submit:
@@ -20,11 +23,48 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           VERSION="${VERSION#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "VTAG=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pkg binaries
+        uses: actions/cache@v4
+        with:
+          path: ~\.pkg-cache
+          key: pkg-cache-${{ runner.os }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: npm ci
+
+      - name: Build standalone executable (pkg)
+        working-directory: archive/v${{ steps.version.outputs.VERSION }}/Root4node
+        run: npm run build
+
+      - name: Package Windows x64 ZIP
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.VERSION }}"
+          $src = "archive/v$version/Root4node/dist/emtypyie.exe"
+          $zip = "archive/v$version/Root4node/dist/emtypyie-cli-windows-x64-$version.zip"
+          Compress-Archive -Path $src -DestinationPath $zip -Force
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  emtypyie-cli-windows-x64-$version.zip" | Out-File -FilePath "$zip.sha256" -Encoding ascii
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: v${{ steps.version.outputs.VERSION }}
+          generate_release_notes: true
+          files: archive/v${{ steps.version.outputs.VERSION }}/Root4node/dist/emtypyie-cli-windows-x64-${{ steps.version.outputs.VERSION }}.zip*
 
       - name: Download wingetcreate
         run: Invoke-WebRequest -Uri "https://aka.ms/wingetcreate/latest" -OutFile "wingetcreate.exe"
 
-      - name: Submit new package to winget-pkgs
+      - name: Submit to winget-pkgs
         env:
           GITHUB_TOKEN: ${{ secrets.WINGETCREATE_TOKEN }}
         shell: pwsh
