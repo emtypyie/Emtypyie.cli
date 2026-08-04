@@ -1,4 +1,4 @@
-﻿# Emtypyie.cli@v3.0.1 
+﻿# Emtypyie.cli@v3.0.2
 
 ![Emtypyie CLI](Emtypyie.cli.png)
 
