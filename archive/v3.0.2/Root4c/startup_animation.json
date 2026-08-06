@@ -1,6 +1,6 @@
 ﻿{
   "version": "3.0.2",
-  "description": "Emtypyie CLI startup boot animation - Linux kernel style",
+  "description": "Emtypyie CLI startup boot animation",
   "timing": {
     "total_ms": 1000,
     "line_count": 10,
@@ -8,7 +8,7 @@
   },
   "lines": [
     "[  OK  ] Booting emtypyie-core v3.0.2 (Baking Bread)...",
-    "[  OK  ] Platform: x86_64-windows-nt detected",
+    "[  OK  ] Baking...",
     "[  OK  ] Memory: 2.1 GiB arena allocated / 16 GiB available",
     "[  OK  ] CPU: AVX2, FMA, SSE4.2, POPCNT, BMI1/2 online",
     "[  OK  ] Storage: NTFS 3.1 mounted on C:\\ (1.8 TB free)",
@@ -16,6 +16,6 @@
     "[  OK  ] Modules: shell, auth, fetch, runtime loaded",
     "[  OK  ] Commands: 23 built-in commands registered",
     "[  OK  ] Emtypyie CLI v3.0.2 ready -- type /help",
-    "[  OK  ] Welcome back. The witches are wandering."
+    "[  OK  ] Welcome back. The Bakin Bread."
   ]
 }
