@@ -45,26 +45,7 @@ static char history[MAX_HISTORY][MAX_LINE];
 static int hist_count = 0;
 static int hist_pos = 0;
 
-/* ─── Interactive shell module ───
- * Provides the REPL (Read-Eval-Print-Loop) for the emtypyie CLI.
- * Features: command history (up/down arrows), tab completion, larpino chat mode.
- *
- * The shell reads raw keyboard input on Windows via ReadConsoleInput and on
- * POSIX via raw terminal mode.  Commands are dispatched through handle_command().
- *
- * Future work:
- *  - Add command-line editing (Ctrl+A/E, etc.).
- *  - Add persistent history across sessions (save/load from file).
- *  - Pipe support for scripted commands.
- *  - Color picker for theme customization.
- *
- * To add a new command:
- *   1. Add the command string to COMMANDS[] (for tab completion).
- *   2. Add an if/else block in handle_command().
- *   3. If it needs a flag handler, add the handler call in main.c too.
- */
 
-/* Shell startup banner: classic figlet "emtypyie" art + version/tagline (no bread). */
 static const char BANNER[] =
 "___________        __                         .__                  .__  .__\n"
 "\\_   _____/ ______/  |_ ___.__. ______ ___.__.|__| ____       ____ |  | |__|\n"
