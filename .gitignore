@@ -11,3 +11,4 @@ manifests/
 *.zip.sha256
 mainsite/
 TODO.md
+.env
