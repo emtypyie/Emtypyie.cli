@@ -12,7 +12,7 @@
 
 #include "bakafetch_data.h"
 
-/* ─── Bakafetch (system info + ASCII art) module ───
+/* ─── Bakafetch  module ───
  * Displays system information (OS, CPU, GPU, RAM, uptime) alongside
  * a random ASCII art and a tsundere-style message.
  *
