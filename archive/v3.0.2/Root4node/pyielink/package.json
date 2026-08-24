@@ -1,0 +1,26 @@
+{
+  "name": "pyielink",
+  "version": "0.5.0",
+  "description": "Pyielink remote access framework — screen sharing, file transfer, and terminal access",
+  "main": "cli.js",
+  "bin": {
+    "pyielink": "cli.js"
+  },
+  "scripts": {
+    "start": "node cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EMTYPYIE/Pyielink"
+  },
+  "keywords": [
+    "pyielink",
+    "remote",
+    "access",
+    "framework"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
