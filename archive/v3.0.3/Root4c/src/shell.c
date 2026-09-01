@@ -38,7 +38,7 @@ static void larpino_print_token(const char *tok, void *user) {
 static const char* COMMANDS[] = {
     "help", "about", "wiki", "theme", "info", "get", "flash", "rm",
     "issue", "bakafetch", "bf", "clear", "update", "upgrade", "list", "docs",
-    "changelog", "version", "larpino", "exit", "quit", NULL
+    "changelog", "version", "new", "init", "larpino", "exit", "quit", NULL
 };
 
 static char history[MAX_HISTORY][MAX_LINE];
@@ -301,6 +301,21 @@ static void handle_command(const char *input) {
         printf("  %s  %s\n", retro("/help"), retro_dim("            this screen"));
         printf("  %s  %s\n", retro("/exit"), retro_dim("            quit"));
         printf("\n");
+        printf("  %s\n", retro_dim("─── Project Subcommands ───"));
+        printf("\n");
+        printf("  %s  %s\n", retro("/<project> --upgrade"), retro_dim("   upgrade project to latest"));
+        printf("  %s  %s\n", retro("/<project> -v"), retro_dim("              show project version"));
+        printf("  %s  %s\n", retro("/<project> rebuild"), retro_dim("      re-download and verify"));
+        printf("  %s  %s\n", retro("/<project> verify"), retro_dim("        check file integrity"));
+        printf("  %s  %s\n", retro("/<project> deps [action]"), retro_dim(" manage dependencies"));
+        printf("  %s  %s\n", retro("/<project> info"), retro_dim("          show detailed info"));
+        printf("\n");
+        printf("  %s\n", retro_dim("─── Templates ───"));
+        printf("\n");
+        printf("  %s  %s\n", retro("/new <template> <name> [dir]"), retro_dim(" create project from template"));
+        printf("  %s  %s\n", retro("/init <template> <name> [dir]"), retro_dim(" alias for /new"));
+        printf("  %s  %s\n", retro("/new list"), retro_dim("                 list available templates"));
+        printf("\n");
         return;
     }
 
@@ -315,6 +330,12 @@ static void handle_command(const char *input) {
     if (strcmp(cmd, "upgrade") == 0) {
         extern bool self_update(void);
         self_update();
+        return;
+    }
+
+    if (strcmp(cmd, "new") == 0 || strcmp(cmd, "init") == 0) {
+        extern void template_handle_command(const char *);
+        template_handle_command(arg);
         return;
     }
 
@@ -490,56 +511,50 @@ static void handle_command(const char *input) {
             printf("  %s\n", retro_err("Specify a project: /issue <project>"));
             return;
         }
-        char url[4096];
-        snprintf(url, sizeof(url), "%s/%s/metadata.json", API_BASE, arg);
-        FetchResult *ir = fetch_get_with_timeout(url, 5);
-        if (!ir || ir->status_code != 200) {
-            printf("  %s %s\n", retro_err("Could not fetch project info:"), retro_dim(arg));
-            if (ir) fetch_free(ir);
-            return;
-        }
-        char *repo = json_string(ir->body, "\"repo\":");
-        if (repo) {
-            char issue_url[512];
-            snprintf(issue_url, sizeof(issue_url), "https://github.com/%s/issues", repo);
-            printf("  %s %s\n", retro("Opening issues for"), retro_accent(arg));
+        char url[512];
+        snprintf(url, sizeof(url), "https://emtypyie.in/issues/%s", arg);
+        printf("  %s %s\n", retro("Opening issues for"), retro_accent(arg));
 #ifdef _WIN32
-            char icmd[1024]; snprintf(icmd, sizeof(icmd), "start \"\" \"%s\"", issue_url); system(icmd);
+        char icmd[1024]; snprintf(icmd, sizeof(icmd), "start \"\" \"%s\"", url); system(icmd);
 #else
-            char icmd[1024]; snprintf(icmd, sizeof(icmd), "xdg-open \"%s\"", issue_url); system(icmd);
+        char icmd[1024]; snprintf(icmd, sizeof(icmd), "xdg-open \"%s\"", url); system(icmd);
 #endif
-            free(repo);
-        } else {
-            printf("  %s %s\n", retro_err("No repo field for:"), retro_dim(arg));
-        }
-        fetch_free(ir);
-        return;
-    }
-
-    if (strcmp(cmd, "wrap") == 0) {
-        if (strlen(arg) == 0) {
-            printf("  %s\n", retro_err("Specify a project: /wrap <project>"));
-            return;
-        }
-        char *dir = get_dev_dir(arg);
-        if (!dir_exists(dir)) {
-            printf("  %s %s\n", retro_err("Project not installed:"), retro_dim(arg));
-            return;
-        }
-        printf("  %s %s\n", retro("Project files for"), retro_accent(arg));
-        char list_cmd[1024];
-#ifdef _WIN32
-        snprintf(list_cmd, sizeof(list_cmd), "dir /b \"%s\"", dir);
-#else
-        snprintf(list_cmd, sizeof(list_cmd), "ls -la \"%s\"", dir);
-#endif
-        system(list_cmd);
         return;
     }
 
     if (strcmp(cmd, "update") == 0) {
         self_update();
         return;
+    }
+
+    /* Check for project subcommands: <project> <subcommand> */
+    char *space = strchr(cmd, ' ');
+    if (space) {
+        *space = '\0';
+        const char *project_name = cmd;
+        const char *subcommand = space + 1;
+        
+        if (strcmp(subcommand, "--upgrade") == 0) {
+            project_upgrade(project_name);
+            return;
+        } else if (strcmp(subcommand, "-v") == 0 || strcmp(subcommand, "--version") == 0) {
+            project_version(project_name);
+            return;
+        } else if (strcmp(subcommand, "rebuild") == 0) {
+            project_rebuild(project_name);
+            return;
+        } else if (strcmp(subcommand, "verify") == 0) {
+            project_verify(project_name);
+            return;
+        } else if (strncmp(subcommand, "deps", 4) == 0) {
+            const char *action = subcommand + 4;
+            while (*action == ' ') action++;
+            project_deps(project_name, action[0] ? action : "install");
+            return;
+        } else if (strcmp(subcommand, "info") == 0) {
+            project_info(project_name);
+            return;
+        }
     }
 
     if (!project_run(cmd)) {

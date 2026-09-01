@@ -23,6 +23,9 @@ add_executable(emtypyie
     src/bakafetch.c
     src/runtime.c
     src/effects.c
+    src/sha256.c
+    src/verify.c
+    src/template.c
     src/larpino.cpp
     lib/cJSON.c
 )
@@ -36,5 +39,6 @@ if(WIN32)
     target_link_libraries(emtypyie PRIVATE winhttp)
 else()
     find_package(CURL REQUIRED)
-    target_link_libraries(emtypyie PRIVATE CURL::libcurl)
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries(emtypyie PRIVATE CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 endif()

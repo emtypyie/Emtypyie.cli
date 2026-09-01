@@ -420,3 +420,150 @@ printf("\n");
     cJSON_Delete(json);
     return true;
 }
+
+#include "verify.h"
+
+/* ─── Project subcommands ─── */
+
+void project_upgrade(const char *name) {
+    printf("  %s %s...\n", retro("Checking for updates to"), retro_accent(name));
+    
+    char url[512];
+    snprintf(url, sizeof(url), "%s/%s/metadata.json", API_BASE, name);
+    FetchResult *res = fetch_get_with_timeout(url, 10);
+    if (!res || res->status_code != 200) {
+        printf("  %s\n", retro_err("Failed to fetch project metadata"));
+        if (res) fetch_free(res);
+        return;
+    }
+    
+    cJSON *json = cJSON_Parse(res->body);
+    fetch_free(res);
+    
+    if (!json) {
+        printf("  %s\n", retro_err("Failed to parse metadata"));
+        return;
+    }
+    
+    cJSON *version = cJSON_GetObjectItem(json, "version");
+    const char *latest_version = cJSON_IsString(version) ? version->valuestring : "unknown";
+    
+    // Get current version from manifest
+    char *dev_dir = get_dev_dir(name);
+    char manifest_path[1024];
+    snprintf(manifest_path, sizeof(manifest_path), "%s%c.emtypyie-manifest.json", dev_dir, PATH_SEP);
+    char *manifest_content = read_file(manifest_path);
+    const char *current_version = "unknown";
+    if (manifest_content) {
+        cJSON *manifest = cJSON_Parse(manifest_content);
+        if (manifest) {
+            cJSON *ver = cJSON_GetObjectItem(manifest, "version");
+            if (cJSON_IsString(ver)) current_version = ver->valuestring;
+            cJSON_Delete(manifest);
+        }
+        free(manifest_content);
+    }
+    
+    if (strcmp(current_version, latest_version) == 0) {
+        printf("  %s Already at latest version (%s)\n", retro("✓"), current_version);
+        cJSON_Delete(json);
+        return;
+    }
+    
+    printf("  %s Update available: %s ---> %s\n", retro_warn("⚠"), current_version, latest_version);
+    printf("  %s\n", retro("Re-downloading..."));
+    
+    if (dir_exists(dev_dir)) {
+        dir_remove_recursive(dev_dir);
+    }
+    
+    project_get(name);
+    
+    // Regenerate manifest
+    verify_generate_manifest(name, json);
+    
+    printf("  %s Upgraded to %s\n", retro("✓"), latest_version);
+    cJSON_Delete(json);
+}
+
+void project_version(const char *name) {
+    char *dev_dir = get_dev_dir(name);
+    char manifest_path[1024];
+    snprintf(manifest_path, sizeof(manifest_path), "%s%c.emtypyie-manifest.json", dev_dir, PATH_SEP);
+    char *manifest_content = read_file(manifest_path);
+    
+    char url[512];
+    snprintf(url, sizeof(url), "%s/%s/metadata.json", API_BASE, name);
+    FetchResult *res = fetch_get_with_timeout(url, 10);
+    
+    printf("\n");
+    printf("  %s %s %s\n", retro("⊹"), retro_accent(name), retro("⊹"));
+    
+    if (manifest_content) {
+        cJSON *manifest = cJSON_Parse(manifest_content);
+        if (manifest) {
+            cJSON *ver = cJSON_GetObjectItem(manifest, "version");
+            if (cJSON_IsString(ver)) {
+                printf("  %s %s\n", retro_dim("Version:"), retro(ver->valuestring));
+            }
+            cJSON *installed = cJSON_GetObjectItem(manifest, "installedAt");
+            if (cJSON_IsString(installed)) {
+                printf("  %s %s\n", retro_dim("Installed:"), retro_dim(installed->valuestring));
+            }
+            cJSON_Delete(manifest);
+        }
+        free(manifest_content);
+    }
+    
+    if (res && res->status_code == 200) {
+        cJSON *json = cJSON_Parse(res->body);
+        if (json) {
+            cJSON *pkg = cJSON_GetObjectItem(json, "packageManagers");
+            if (pkg) {
+                printf("\n  %s\n", retro_dim("Package Managers:"));
+                cJSON *child = pkg->child;
+                while (child) {
+                    cJSON *installCmd = cJSON_GetObjectItem(child, "installCmd");
+                    cJSON *ver = cJSON_GetObjectItem(child, "version");
+                    if (cJSON_IsString(installCmd)) {
+                        printf("  %s %s", retro_dim(child->string), retro(installCmd->valuestring));
+                        if (cJSON_IsString(ver)) printf(" %s", retro_dim(ver->valuestring));
+                        printf("\n");
+                    }
+                    child = child->next;
+                }
+            }
+            cJSON_Delete(json);
+        }
+        fetch_free(res);
+    }
+    
+    printf("\n");
+}
+
+void project_rebuild(const char *name) {
+    verify_rebuild_project(name);
+}
+
+void project_verify(const char *name) {
+    VerifyResult *result = verify_project(name, false);
+    verify_show_results(result, name);
+    verify_free_result(result);
+}
+
+void project_deps(const char *name, const char *action) {
+    if (!action || strcmp(action, "install") == 0) {
+        printf("  %s %s\n", retro("Installing dependencies for"), retro_accent(name));
+        // TODO: Implement dependency installation
+        printf("  %s Dependency installation not yet implemented in C CLI\n", retro_dim("Note:"));
+    } else if (strcmp(action, "list") == 0) {
+        printf("  %s %s\n", retro("Dependencies for"), retro_accent(name));
+        printf("  %s Not yet implemented\n", retro_dim("Note:"));
+    } else if (strcmp(action, "check") == 0) {
+        printf("  %s %s\n", retro("Checking dependencies for"), retro_accent(name));
+        printf("  %s Not yet implemented\n", retro_dim("Note:"));
+    } else {
+        printf("  %s Unknown deps action: %s\n", retro_err("Error:"), action);
+        printf("  %s Available: install, list, check\n", retro_dim("Usage:"));
+    }
+}

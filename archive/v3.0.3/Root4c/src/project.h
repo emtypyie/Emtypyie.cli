@@ -21,4 +21,11 @@ void project_docs(const char *name);
  * Returns true if the project was launched. */
 bool project_run(const char *name);
 
+/* Project subcommands */
+void project_upgrade(const char *name);
+void project_version(const char *name);
+void project_rebuild(const char *name);
+void project_verify(const char *name);
+void project_deps(const char *name, const char *action);
+
 #endif

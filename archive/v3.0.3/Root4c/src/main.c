@@ -147,6 +147,18 @@ static void print_usage(void) {
     printf("  /clear            Clear screen\n");
     printf("  /shell            Interactive mode\n");
     printf("\n");
+    printf("Project Subcommands:\n");
+    printf("  /<project> --upgrade    Upgrade project to latest\n");
+    printf("  /<project> -v           Show project version\n");
+    printf("  /<project> rebuild      Re-download and verify\n");
+    printf("  /<project> verify       Check file integrity\n");
+    printf("  /<project> deps [action] Manage dependencies\n");
+    printf("  /<project> info         Show detailed info\n");
+    printf("\n");
+    printf("  /new <template> <name> [dir]  Create project from template\n");
+    printf("  /init <template> <name> [dir] Alias for /new\n");
+    printf("  /new list                       List available templates\n");
+    printf("\n");
     printf("Run without arguments to enter interactive mode.\n");
 }
 
@@ -371,10 +383,56 @@ int main(int argc, char *argv[]) {
         }
         project_run(arg);
     }
+    else if (strcmp(cmd, "/new") == 0 || strcmp(cmd, "/init") == 0) {
+        extern void template_handle_command(const char *);
+        template_handle_command(arg);
+        if (g_json) json_emit_str(cmd, 1, arg);
+    }
     else {
-        extern bool project_run(const char *);
-        /* Unknown command: try launching it as a project name (e.g. /qrkraft). */
-        project_run(cmd + 1);
+        /* Check if it's a project subcommand: /<project> <subcommand> */
+        const char *space = strchr(cmd + 1, ' ');
+        if (space) {
+            size_t project_len = space - (cmd + 1);
+            char project_name[256];
+            if (project_len < sizeof(project_name)) {
+                strncpy(project_name, cmd + 1, project_len);
+                project_name[project_len] = '\0';
+                const char *subcommand = space + 1;
+                
+                if (strcmp(subcommand, "--upgrade") == 0) {
+                    extern void project_upgrade(const char *);
+                    project_upgrade(project_name);
+                } else if (strcmp(subcommand, "-v") == 0 || strcmp(subcommand, "--version") == 0) {
+                    extern void project_version(const char *);
+                    project_version(project_name);
+                } else if (strcmp(subcommand, "rebuild") == 0) {
+                    extern void project_rebuild(const char *);
+                    project_rebuild(project_name);
+                } else if (strcmp(subcommand, "verify") == 0) {
+                    extern void project_verify(const char *);
+                    project_verify(project_name);
+                } else if (strncmp(subcommand, "deps", 4) == 0) {
+                    const char *action = subcommand + 4;
+                    while (*action == ' ') action++;
+                    extern void project_deps(const char *, const char *);
+                    project_deps(project_name, action[0] ? action : "install");
+                } else if (strcmp(subcommand, "info") == 0) {
+                    extern void project_info(const char *);
+                    project_info(project_name);
+                } else {
+                    /* Unknown subcommand, try running as project */
+                    extern bool project_run(const char *);
+                    project_run(cmd + 1);
+                }
+            } else {
+                extern bool project_run(const char *);
+                project_run(cmd + 1);
+            }
+        } else {
+            /* Unknown command: try launching it as a project name (e.g. /qrkraft). */
+            extern bool project_run(const char *);
+            project_run(cmd + 1);
+        }
     }
 
     check_for_updates();
