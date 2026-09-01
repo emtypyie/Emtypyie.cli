@@ -2,7 +2,7 @@
 
 ![Emtypyie CLI](Emtypyie.cli.png)
 
-> Run emtypyie projects from your terminal with ease — the future runtime engine.
+> Package Manager for all of my projects
 
 ## Quick install
 
