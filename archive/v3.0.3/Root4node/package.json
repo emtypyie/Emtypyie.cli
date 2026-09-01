@@ -1,0 +1,41 @@
+{
+  "name": "emtypyie-cli",
+  "version": "3.0.3",
+  "releaseDate": "2026-08-31",
+  "description": "Emtypyie.cli - A command-line interface (CLI) tool for managing Emtypyie projects.",
+  "main": "cli.js",
+  "bin": {
+    "emtypyie": "cli.js"
+  },
+  "scripts": {
+    "start": "node cli.js",
+    "build": "pkg cli.js --targets node16-win-x64 --output dist/emtypyie.exe",
+    "prepublishOnly": "node -e \"console.log('Publishing emtypyie-cli v' + require('./package.json').version)\""
+  },
+  "pkg": {
+    "assets": [
+      "commands/**/*"
+    ]
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emtypyie/emtypyie.cli.git"
+  },
+  "keywords": [
+    "emtypyie",
+    "cli",
+    "project-manager",
+    "terminal",
+    "package-manager"
+  ],
+  "license": "All Rights Reserved",
+  "dependencies": {
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  }
+}

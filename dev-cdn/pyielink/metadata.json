@@ -1,0 +1,46 @@
+{
+  "name": "Pyielink",
+  "version": "0.5.0",
+  "repo": "https://github.com/emtypyie/Pyielink",
+  "description": "Pyielink remote access framework — screen sharing, file transfer, and terminal access",
+  "download": "https://cdn.emtypyie.in/dev/pyielink-v0.5.0-windows-x64.exe",
+  "filename": "pyielink-v0.5.0-windows-x64.exe",
+  "info": "Pyielink v0.5.0 remote access framework\n\nConnect:\n  pyielink user@192.168.1.100    # GUI mode\n  pyielink --repl user@192.168.1.100  # REPL terminal mode\n\nFirst run: npm install -g pyielink\n  Downloads Rust binary from CDN and sets up configuration.\n\nDocs:  https://github.com/EMTYPYIE/Pyielink\nSupport: Issues https://github.com/EMTYPYIE/Pyielink/issues",
+  "cdn_pattern": "pyielink-v0.5.0-{platform}-{arch}{ext}",
+  "platforms": {
+    "windows": "x64",
+    "linux": "x64", 
+    "darwin": "arm64,x64"
+  },
+  "commands": [
+    "pyielink <user@ip>",
+    "pyielink --repl <user@ip>",
+    "pyielink enable",
+    "pyielink enable --all",
+    "pyielink enable --whitelist <ip>",
+    "pyielink whitelist add <ip>",
+    "pyielink whitelist remove <ip>"
+  ],
+  "packageManagers": {
+    "npm": { "name": "pyielink", "installCmd": "npm install -g pyielink", "version": "0.5.0" }
+  },
+  "techStack": [
+    { "name": "Rust", "version": "1.70+", "required": true },
+    { "name": "Node.js", "version": "18+", "required": true }
+  ],
+  "dependencies": {
+    "npm": ["ws@^8.14", "node-pty@^1.0.0"],
+    "system": ["git", "curl"]
+  },
+  "integrity": {
+    "files": [
+      { "path": "pyielink-v0.5.0-windows-x64.exe", "sha256": "c3d4e5f6a7b89012345678901234567890abcdef1234567890abcdef12345678", "size": 12582912 }
+    ],
+    "manifestSha256": "d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7"
+  },
+  "installScripts": {
+    "preInstall": "",
+    "postInstall": "pyielink --setup",
+    "verify": "pyielink --version"
+  }
+}

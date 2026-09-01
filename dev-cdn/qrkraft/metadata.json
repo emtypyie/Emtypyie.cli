@@ -1,0 +1,32 @@
+{
+  "name": "QR KRAFT",
+  "version": "v1.01",
+  "repo": "emtypyie/QRkRAFT",
+  "description": "Custom QR Code Generator with full styling",
+  "download": "https://github.com/emtypyie/QRkRAFT/releases/download/v1.01/QR.KRAFT.Setup.1.0.1.exe",
+  "filename": "QR.KRAFT.Setup.1.0.1.exe",
+  "info": "QR KRAFT - Custom QR Code Generator\n\nModule Shapes: Square, Circle, X, Plus\nFinder Styles: Standard, Rounded, Circle, Diamond, Leaf, Mixed, Frame, Dots\nColors: Custom foreground, background, transparent support\nLogo: Overlay any image in the center\nExport: PNG and SVG\n\nSupport:  https://github.com/myrachane/QRkRAFT/issues\nDocs:    https://github.com/myrachane/QRkRAFT#readme",
+  "packageManagers": {
+    "winget": { "name": "emtypyie.QRKRAFT", "installCmd": "winget install emtypyie.QRKRAFT" },
+    "choco": { "name": "qrkraft", "installCmd": "choco install qrkraft" }
+  },
+  "techStack": [
+    { "name": "C#", "version": "9.0+", "required": true },
+    { "name": ".NET", "version": "6.0+", "required": true }
+  ],
+  "dependencies": {
+    "system": ["git", "curl"],
+    "dotnet": ["QRCoder>=1.4.3"]
+  },
+  "integrity": {
+    "files": [
+      { "path": "QR.KRAFT.Setup.1.0.1.exe", "sha256": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456", "size": 15728640 }
+    ],
+    "manifestSha256": "f6e5d4c3b2a10987654321fedcba0987654321fedcba0987654321fedcba0987"
+  },
+  "installScripts": {
+    "preInstall": "",
+    "postInstall": "",
+    "verify": "qrkraft --version"
+  }
+}

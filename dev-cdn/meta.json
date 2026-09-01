@@ -1,0 +1,19 @@
+{
+  "projects": [
+    {
+      "name": "qrkraft",
+      "version": "v1.01",
+      "description": "Custom QR Code Generator with full styling"
+    },
+    {
+      "name": "wcrawler",
+      "version": "v1.0.0",
+      "description": "Web crawler and scraper"
+    },
+    {
+      "name": "pyielink",
+      "version": "0.5.0",
+      "description": "Pyielink remote access framework"
+    }
+  ]
+}

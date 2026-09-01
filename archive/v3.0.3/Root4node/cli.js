@@ -9,19 +9,23 @@ const getCommand = require('./commands/get');
 const bakafetch = require('./commands/bakafetch');
 const fetch = require('./commands/fetch');
 const runtime = require('./commands/install-runtime');
+const verify = require('./commands/verify');
+const project = require('./commands/project');
+const deps = require('./commands/deps');
+const template = require('./commands/template');
 
 const t = require('./commands/theme');
 
 const ANIM_LINES = [
-  '[  OK  ] Booting emtypyie-core v3.0.2 (Baking Bread)...',
+  '[  OK  ] Booting emtypyie-core v3.0.3 (Baking Bread)...',
   '[  OK  ] Platform: x86_64-windows-nt detected',
   '[  OK  ] Memory: 2.1 GiB arena allocated / 16 GiB available',
   '[  OK  ] CPU: AVX2, FMA, SSE4.2, POPCNT, BMI1/2 online',
   '[  OK  ] Storage: NTFS 3.1 mounted on C:\\ (1.8 TB free)',
   '[  OK  ] Console: VT100 sequences enabled',
-  '[  OK  ] Modules: shell, auth, fetch, runtime loaded',
-  '[  OK  ] Commands: 23 built-in commands registered',
-  '[  OK  ] Emtypyie CLI v3.0.2 ready -- type /help',
+  '[  OK  ] Modules: shell, fetch, runtime loaded',
+  '[  OK  ] Commands: 18 built-in commands registered',
+  '[  OK  ] Emtypyie CLI v3.0.3 ready -- type /help',
   '[  OK  ] Welcome back. The witches are wandering.',
 ];
 
@@ -101,6 +105,10 @@ async function handleCommand(cmd, arg, rl) {
       await showHelp();
       break;
 
+    case 'version':
+      showVersion();
+      break;
+
     case 'about':
       showAbout();
       break;
@@ -143,6 +151,22 @@ async function handleCommand(cmd, arg, rl) {
       doTheme(arg);
       break;
 
+    case 'new':
+    case 'init':
+      await template.handleTemplateCommand(arg.trim().split(/\s+/));
+      break;
+
+    case 'upgrade':
+      console.log(t.retro('  Updating emtypyie...'));
+      try {
+        execSync('npm update -g emtypyie-cli', { stdio: 'inherit' });
+        console.log(t.retro('  Update complete! Restarting...'));
+        process.exit(0);
+      } catch {
+        console.log(t.retroErr('  Update failed. Try: npm update -g emtypyie-cli'));
+      }
+      break;
+
     case 'clear':
       console.clear();
       break;
@@ -171,6 +195,15 @@ async function handleCommand(cmd, arg, rl) {
       break;
 
     default:
+      // Check if it's a project subcommand: /<project> <subcommand>
+      const parts = normalized.split(/\s+/);
+      if (parts.length >= 2) {
+        const projectName = parts[0];
+        const subcommand = parts[1];
+        const subArgs = parts.slice(2);
+        await project.handleProjectSubcommand(projectName, subcommand, subArgs);
+        return;
+      }
       await runProject(normalized);
   }
 }
@@ -191,13 +224,30 @@ async function showHelp() {
   console.log(t.retro('  /bf') + t.retroDim('               shortcut for /bakafetch'));
   console.log(t.retro('  /clear') + t.retroDim('              clear screen'));
   console.log(t.retro('  /update') + t.retroDim('            update emtypyie'));
+  console.log(t.retro('  /upgrade') + t.retroDim('           update emtypyie (alias)'));
   console.log(t.retro('  /list') + t.retroDim('              list projects'));
   console.log(t.retro('  /docs <project>') + t.retroDim('    open project docs'));
   console.log(t.retro('  /changelog') + t.retroDim('         what\'s new'));
+  console.log(t.retro('  /version') + t.retroDim('           show version'));
   console.log(t.retro('  /about') + t.retroDim('             about emtypyie'));
   console.log(t.retro('  /wiki') + t.retroDim('              open wiki.emtypyie.in'));
   console.log(t.retro('  /help') + t.retroDim('             this screen'));
   console.log(t.retro('  /exit') + t.retroDim('             quit'));
+  console.log();
+  console.log(t.retroDim('  \u2503 Project Subcommands \u2503'));
+  console.log();
+  console.log(t.retro('  /<project> --upgrade') + t.retroDim('   upgrade project to latest'));
+  console.log(t.retro('  /<project> -v') + t.retroDim('              show project version'));
+  console.log(t.retro('  /<project> rebuild') + t.retroDim('      re-download and verify'));
+  console.log(t.retro('  /<project> verify') + t.retroDim('        check file integrity'));
+  console.log(t.retro('  /<project> deps [install|update|list|check]'));
+  console.log(t.retro('  /<project> info') + t.retroDim('           show detailed info'));
+  console.log();
+  console.log(t.retroDim('  \u2503 Templates \u2503'));
+  console.log();
+  console.log(t.retro('  /new <template> <name> [dir]') + t.retroDim('  create project from template'));
+  console.log(t.retro('  /init <template> <name> [dir]') + t.retroDim('  alias for /new'));
+  console.log(t.retro('  /new list') + t.retroDim('                 list available templates'));
   console.log();
   console.log(t.retroDim('  \u2503 Projects \u2503'));
   console.log();
@@ -249,6 +299,57 @@ const WITCHES_ART = [
   '⠀⠀⠙⢷⣧⠭⢝⡻⣿⠿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
   '⠀⠀⠀⠀⠀⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ',
 ];
+ 
+function showVersion() {
+  const pkg = require('./package.json');
+  console.log();
+  console.log(BANNER);
+  console.log(t.retro(`  EMTYPYIE CLI v${pkg.version}`));
+  console.log(t.retroDim('  "Baking Bread"'));
+  console.log();
+  for (const line of WITCHES_ART) console.log(t.retroAccent(line));
+  console.log();
+  console.log(t.retroDim('  Release: ') + t.retroAccent('Baking Bread'));
+  console.log(t.retroDim('  DESIGNED AND ENGINEERED BY  EMTYPYIE'));
+  console.log(t.retroDim(`  Copyright \u00a9 ${new Date().getFullYear()} EMTYPYIE. All rights reserved.`));
+  console.log();
+}
+
+async function checkForUpdates(silent = false) {
+  const pkg = require('./package.json');
+  const currentVersion = pkg.version;
+  try {
+    const response = await fetch('https://api.github.com/repos/emtypyie/emtypyie-cli/releases/latest', {
+      headers: { 'User-Agent': 'emtypyie-cli' },
+      timeout: 5000
+    });
+    if (!response.ok) return;
+    const data = await response.json();
+    const latestVersion = data.tag_name?.replace(/^v/, '') || '';
+    if (latestVersion && compareVersions(latestVersion, currentVersion) > 0) {
+      if (!silent) {
+        console.log();
+        console.log(t.retroWarn(`  A new Version Of Emtypyie.cli is Available v${currentVersion} ---> v${latestVersion}`));
+        console.log(t.retroDim('  Run ') + t.retro('emtypyie --upgrade') + t.retroDim(' to update and restart'));
+        console.log();
+      }
+    }
+  } catch {
+    // Silent fail - don't block startup
+  }
+}
+
+function compareVersions(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = pa[i] || 0;
+    const nb = pb[i] || 0;
+    if (na > nb) return 1;
+    if (na < nb) return -1;
+  }
+  return 0;
+}
 
 function showAbout() {
   console.log();
@@ -429,6 +530,14 @@ async function runProject(name) {
     console.log(t.retroErr(err.message));
     return;
   }
+  
+  // Quick integrity check before running
+  const verifyResults = await verify.verifyProject(name, true);
+  if (!verifyResults.ok) {
+    verify.showVerifyResults(verifyResults, name);
+    console.log();
+  }
+  
   const runTarget = proj.run || proj.filename;
   if (!runTarget) {
     console.log(t.retroErr(`  Project "${name}" has no run target.`));
@@ -542,7 +651,7 @@ function doTheme(arg) {
   }
 }
 
-const COMMANDS = ['help', 'about', 'wiki', 'theme', 'info', 'get', 'flash', 'rm', 'issue', 'bakafetch', 'bf', 'clear', 'update', 'list', 'docs', 'changelog', 'exit', 'quit'];
+const COMMANDS = ['help', 'about', 'wiki', 'theme', 'info', 'get', 'flash', 'rm', 'issue', 'bakafetch', 'bf', 'clear', 'update', 'upgrade', 'list', 'docs', 'changelog', 'version', 'new', 'init', 'exit', 'quit'];
 
 function completer(line) {
   const input = line.replace(/^\//, '');
@@ -560,20 +669,22 @@ async function interactive() {
     completer
   });
 
-  console.clear();
+console.clear();
   await playStartupAnimation({ skip: args.includes('--no-animation') });
   console.log(BANNER);
-  console.log(t.retro('  EMTYPYIE CLI v3.0.2'));
+  console.log(t.retro('  EMTYPYIE CLI v3.0.3'));
   console.log(t.retroDim('  "Baking Bread"'));
   console.log();
   console.log(t.retroDim(`
   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
   `) + t.retro('"code. create. conquer."') + t.retroDim(`
-  \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
-
+  \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
   Type `) + t.retroAccent('/help') + t.retroDim(` for available commands.
-  \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501`));
+  \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501`));
   console.log();
+
+  // Non-blocking update check
+  checkForUpdates(true);
 
   rl.prompt();
 
@@ -607,8 +718,29 @@ async function direct(args) {
   const cmd = args[0]?.toLowerCase();
   const arg = args.slice(1).join(' ');
 
+  // Handle --upgrade flag
+  if (cmd === '--upgrade') {
+    console.log(t.retro('  Updating emtypyie...'));
+    try {
+      execSync('npm update -g emtypyie-cli', { stdio: 'inherit' });
+      console.log(t.retro('  Update complete! Restarting...'));
+      process.exit(0);
+    } catch {
+      console.log(t.retroErr('  Update failed. Try: npm update -g emtypyie-cli'));
+      process.exit(1);
+    }
+  }
+
+  // Handle version flags before command processing
+  if (cmd === '-v' || cmd === '--version' || cmd === 'version') {
+    showVersion();
+    checkForUpdates();
+    return;
+  }
+
   if (!cmd || cmd === 'help' || cmd === '/help') {
     await showHelp();
+    checkForUpdates();
     return;
   }
 
@@ -617,6 +749,7 @@ async function direct(args) {
   } catch (e) {
     console.log(t.retroErr(`  Error: ${e.message}`));
   }
+  checkForUpdates();
 }
 
 const args = process.argv.slice(2);

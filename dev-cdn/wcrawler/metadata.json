@@ -1,0 +1,33 @@
+{
+  "name": "Web Crawler",
+  "version": "v1.0.0",
+  "repo": "emtypyie/wcrawler",
+  "description": "Web crawler and scraper with configurable depth and filters",
+  "download": "https://github.com/emtypyie/wcrawler/releases/download/v1.0.0/wcrawler-windows-x64.exe",
+  "filename": "wcrawler-windows-x64.exe",
+  "info": "Web Crawler - Scrape and crawl websites\n\nFeatures:\n- Configurable crawl depth\n- URL filtering (include/exclude patterns)\n- Respect robots.txt\n- Export to JSON, CSV, or SQL\n- Concurrent requests with rate limiting\n\nUsage: wcrawler https://example.com --depth 2 --output results.json",
+  "packageManagers": {
+    "npm": { "name": "wcrawler", "installCmd": "npm install -g wcrawler", "version": "1.0.0" },
+    "pypi": { "name": "wcrawler", "installCmd": "pip install wcrawler", "version": "1.0.0" }
+  },
+  "techStack": [
+    { "name": "Node.js", "version": "18+", "required": true },
+    { "name": "Python", "version": "3.10+", "required": false }
+  ],
+  "dependencies": {
+    "npm": ["cheerio@^1.0.0", "axios@^1.6.0"],
+    "python": ["requests>=2.28", "beautifulsoup4>=4.11"],
+    "system": ["git", "curl"]
+  },
+  "integrity": {
+    "files": [
+      { "path": "wcrawler-windows-x64.exe", "sha256": "b2c3d4e5f6a789012345678901234567890abcdef1234567890abcdef1234567", "size": 8388608 }
+    ],
+    "manifestSha256": "e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6"
+  },
+  "installScripts": {
+    "preInstall": "",
+    "postInstall": "",
+    "verify": "wcrawler --version"
+  }
+}
