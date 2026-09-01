@@ -1,4 +1,4 @@
-﻿# Emtypyie.cli@v3.0.2
+﻿# Emtypyie.cli@v3.0.3
 
 ![Emtypyie CLI](Emtypyie.cli.png)
 
@@ -7,10 +7,10 @@
 ## Quick install
 
 ```sh
-# Windows (Winget) — {currently in previous versions}
+# Windows (Winget)
 winget install myrachane.emtypyie-cli
 
-# Windows (Chocolatey) — SOON
+# Windows (Chocolatey)
 choco install emtypyie-cli
 
 # npm (all platforms)
@@ -38,6 +38,16 @@ set EMTYPYIE_NO_ANIM=1
 
 Direct commands also work without entering the shell, e.g. `emtypyie /list` or `emtypyie /get gcc`.
 
+### Version & Updates
+
+```sh
+emtypyie -v          # Show version with ASCII art
+emtypyie --version   # Same as -v
+emtypyie --upgrade   # Self-update to latest version and restart
+```
+
+On every launch, the CLI checks for updates in the background and notifies if a new version is available.
+
 ## Launch — GUI (Windows only)
 
 Download `emtypyie.cli-Wrapper.zip` from the release, extract it anywhere, and run:
@@ -61,6 +71,8 @@ On first launch, a desktop shortcut is created automatically. The GUI opens a fr
 
 ## Commands
 
+### Core Commands
+
 | Command | Description |
 |---------|-------------|
 | `/help` | Show help |
@@ -77,6 +89,57 @@ On first launch, a desktop shortcut is created automatically. The GUI opens a fr
 | `/shell` | Interactive mode |
 | `/larpino enable\|disable\|status` | LLAMA inference engine |
 | `/clear` | Clear screen |
+| `/wiki` | Open wiki.emtypyie.in |
+| `/changelog` | Open GitHub releases |
+| `/about` | About emtypyie |
+| `/version` | Show version with ASCII art |
+| `/update` | Check for CLI updates |
+| `/upgrade` | Alias for --upgrade |
+| `/exit` / `/quit` | Exit interactive shell |
+
+### Project Subcommands
+
+After installing a project (`/get <project>`), you can manage it with subcommands:
+
+| Command | Description |
+|---------|-------------|
+| `/<project> --upgrade` | Upgrade project to latest version |
+| `/<project> -v` | Show project version and package managers |
+| `/<project> rebuild` | Re-download and verify integrity |
+| `/<project> verify` | Check file integrity (SHA256) |
+| `/<project> deps [action]` | Manage dependencies (install, update, list, check) |
+| `/<project> info` | Show detailed project info (tech stack, deps, etc.) |
+
+### Project Templates
+
+Create new projects from templates:
+
+| Command | Description |
+|---------|-------------|
+| `/new <template> <name> [dir]` | Create project from template |
+| `/init <template> <name> [dir]` | Alias for /new |
+| `/new list` | List available templates |
+
+**Available templates:** `python-cli`, `node-cli`, `rust-cli`
+
+### Dependency Management
+
+For installed projects with declared dependencies:
+
+```sh
+/<project> deps install   # Install all dependencies
+/<project> deps update    # Update to latest versions
+/<project> deps list      # List declared dependencies
+/<project> deps check     # Verify all dependencies satisfied
+```
+
+Supports Python (pip), Node.js (npm), Rust (cargo), and system binaries.
+
+### Issues
+
+```sh
+/issue <project>   # Open emtypyie.in/issues/<project>
+```
 
 ## Structure
 
@@ -85,6 +148,7 @@ On first launch, a desktop shortcut is created automatically. The GUI opens a fr
 | `archive/vX.Y.Z/Root4c/`    | C CLI — portable single binary (primary, recommended) |
 | `archive/vX.Y.Z/Root4node/` | Node.js CLI — published to npm |
 | `archive/vX.Y.Z/Root4gui/`  | Electron GUI wrapper (frameless, multi-tab, streaming) |
+| `dev-cdn/` | Local CDN mirror with project metadata & templates |
 | `mainsite/`  | Website landing pages |
 | `manifests/` | Winget package manifests |
 | `choco/`     | Chocolatey package |
@@ -104,7 +168,20 @@ Single-binary CLI written in C11/C++17, no runtime dependencies.
   - `/larpino enable` enters chat mode in the interactive shell
   - `/get larpino@1b` downloads a model from the CDN
 - **CDN registry:** fetches project list and metadata from `cdn.emtypyie.in/dev`
+- **Integrity verification:** SHA256 manifest tracking, tamper detection with warnings
+- **Auto-update check:** Background check on startup, `--upgrade` to update
+- **Project subcommands:** `--upgrade`, `-v`, `rebuild`, `verify`, `deps`, `info`
+- **Templates:** `/new`, `/init` with python-cli, node-cli, rust-cli
 - **No args:** opens interactive shell (with startup boot animation)
+
+## Node.js CLI (Root4node)
+
+Published to npm as `emtypyie-cli`. Feature parity with C CLI.
+
+- **Install:** `npm install -g emtypyie-cli`
+- **Run:** `emtypyie` or `npx emtypyie-cli`
+- **Package:** `pkg` compiles to single executable
+- Same commands, subcommands, templates, and integrity verification
 
 ## GUI (Root4gui) — emtypyie.cli-Wrapper
 
@@ -117,12 +194,55 @@ Electron-based GUI wrapper for the C CLI, targeting Windows x64.
 - **Multi-tab:** each tab spawns its own C engine process (child_process.spawn)
 - **Streaming output:** per-line DOM writes — no buffer, visible during long operations
 - **Status bar:** per-tab footer showing current command + animated dot
-- **Settings panel:** accent swatches, font size, env variables (GitHub/npm tokens)
+- **Settings panel:** accent swatches, font size, env variables
 - **Ricing section:** background image opacity slider (0–100%, persisted to localStorage)
 - **Runtime check:** on startup, verifies `emtypyie.exe` exists; if missing, prompts to download from GitHub
 - **Update mechanism:** checks GitHub releases, downloads + extracts `emtypyie.exe` from asset zip
 - **Icon:** custom logo.ico, set as EXE and window icon
 - **Packaging:** `electron-packager` with `--asar`, `--extraResource` for the C binary
+
+## CDN Metadata Schema
+
+Projects on `cdn.emtypyie.in/dev/<project>/metadata.json` support extended fields:
+
+```json
+{
+  "name": "Project Name",
+  "version": "1.0.0",
+  "repo": "github/repo",
+  "description": "...",
+  "download": "url",
+  "filename": "file.exe",
+  "info": "...",
+  "packageManagers": {
+    "npm": { "name": "pkg", "installCmd": "npm install -g pkg", "version": "1.0.0" },
+    "winget": { "name": "id", "installCmd": "winget install id" },
+    "choco": { "name": "id", "installCmd": "choco install id" }
+  },
+  "techStack": [
+    { "name": "Python", "version": "3.11+", "required": true },
+    { "name": "Node.js", "version": "18+", "required": false }
+  ],
+  "dependencies": {
+    "python": ["requests>=2.28"],
+    "npm": ["chalk@^4.1"],
+    "system": ["git", "curl"]
+  },
+  "integrity": {
+    "files": [
+      { "path": "main.py", "sha256": "abc123...", "size": 1024 }
+    ],
+    "manifestSha256": "hash..."
+  },
+  "installScripts": {
+    "preInstall": "...",
+    "postInstall": "...",
+    "verify": "..."
+  }
+}
+```
+
+Local mirror available at `dev-cdn/` with same structure.
 
 ## Release artifacts
 
@@ -130,6 +250,6 @@ Each GitHub release ships three Windows artifacts:
 
 | ZIP | Contents | Source |
 |-----|----------|--------|
-| `emtypyie-cli-windows-x64-3.0.1.zip` | `emtypyie.exe` | Node.js (pkg) — npm release |
-| `emtypyie-cli-native-windows-x64-3.0.1.zip` | `emtypyie.exe` | C native build |
+| `emtypyie-cli-windows-x64-3.0.3.zip` | `emtypyie.exe` | Node.js (pkg) — npm release |
+| `emtypyie-cli-native-windows-x64-3.0.3.zip` | `emtypyie.exe` | C native build |
 | `emtypyie.cli-Wrapper.zip` | `emtypyieWrapper.exe` + resources | Electron GUI wrapper |
