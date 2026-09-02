@@ -1,14 +1,14 @@
-﻿name: Winget Submission
+﻿name: Submit to Winget
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (e.g. 3.0.1)'
+        description: 'Version (e.g. 3.0.3)'
         required: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   submit:
@@ -29,7 +29,8 @@ jobs:
           $version = "${{ steps.version.outputs.VERSION }}"
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip.sha256"
           $sha = ([System.Text.Encoding]::UTF8.GetString((Invoke-WebRequest -Uri $url).Content)).Split(" ")[0].Trim()
-          "SHA256=$sha" | Out-File -FilePath "$env:GITHUB_ENV" -Append
+          "SHA256=$sha" | Out-File -FilePath "$env:GITHUB_OUTPUT" -Append
+          Write-Host "SHA256: $sha"
 
       - name: Create winget manifest and submit PR
         shell: pwsh
@@ -38,15 +39,68 @@ jobs:
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
           $url = "https://github.com/emtypyie/Emtypyie.cli/releases/download/v$version/emtypyie-cli-windows-x64-$version.zip"
-          $sha = $env:SHA256
+          $sha = "${{ steps.sha.outputs.SHA256 }}"
 
-          $base = "manifests/e/emtypyie/cli"
+          $base = "manifests/e/emtypyie/cli/$version"
 
-          $versionManifest = "PackageIdentifier: emtypyie.cli`nPackageVersion: $version`nDefaultLocale: en-US`nManifestType: version`nManifestVersion: 1.9.0"
+          # Version manifest
+          $versionManifest = @"
+          # yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.12.0.schema.json
+          PackageIdentifier: emtypyie.cli
+          PackageVersion: $version
+          DefaultLocale: en-US
+          ManifestType: version
+          ManifestVersion: 1.12.0
+          "@
 
-          $installerManifest = "PackageIdentifier: emtypyie.cli`nPackageVersion: $version`nPlatform:`n- Windows.Desktop`nMinimumOSVersion: 10.0.17763.0`nInstallerType: zip`nInstallers:`n- Architecture: x64`n  InstallerUrl: $url`n  InstallerSha256: $sha`nManifestType: installer`nManifestVersion: 1.9.0"
+          # Installer manifest (zip with nested portable exe)
+          $installerManifest = @"
+          # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
+          PackageIdentifier: emtypyie.cli
+          PackageVersion: $version
+          Platform:
+            - Windows.Desktop
+          MinimumOSVersion: 10.0.17763.0
+          InstallerType: zip
+          NestedInstallerType: portable
+          NestedInstallerFiles:
+            - RelativeFilePath: emtypyie.exe
+              PortableCommandAlias: emtypyie
+          UpgradeBehavior: install
+          ReleaseDate: $((Get-Date).ToString("yyyy-MM-dd"))
+          Installers:
+            - Architecture: x64
+              InstallerUrl: $url
+              InstallerSha256: $sha
+          ManifestType: installer
+          ManifestVersion: 1.12.0
+          "@
 
-          $localeManifest = "PackageIdentifier: emtypyie.cli`nPackageVersion: $version`nPackageLocale: en-US`nPublisher: emtypyie`nPackageName: emtypyie-cli`nShortDescription: Emtypyie CLI - Run emtypyie projects from your terminal with ease`nDescription: Emtypyie CLI allows you to create, manage, and run emtypyie projects directly from your terminal.`nLicense: Proprietary`nManifestType: defaultLocale`nManifestVersion: 1.9.0"
+          # Locale manifest (filename=locale, ManifestType=defaultLocale)
+          $localeManifest = @"
+          # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
+          PackageIdentifier: emtypyie.cli
+          PackageVersion: $version
+          PackageLocale: en-US
+          Publisher: Emtypyie
+          PublisherUrl: https://emtypyie.in
+          PublisherSupportUrl: https://github.com/emtypyie/Emtypyie.cli/issues
+          Author: Emtypyie
+          PackageName: Emtypyie CLI
+          PackageUrl: https://emtypyie.in/cli
+          License: MIT
+          ShortDescription: Modern CLI tool for managing dependencies, creating projects, and building applications
+          Description: |
+            emtypyie.cli is the official package manager for EMTYPYIE.IN projects
+            and serves as easy setup for all.
+          Tags:
+            - cli
+            - package-manager
+            - developer-tools
+            - terminal
+          ManifestType: defaultLocale
+          ManifestVersion: 1.12.0
+          "@
 
           $headers = @{
             Authorization = "token $env:GH_TOKEN"
@@ -55,41 +109,90 @@ jobs:
 
           $upstream = "microsoft/winget-pkgs"
           $fork = "emtypyie/winget-pkgs"
-          $defaultBranch = (Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream" -Headers $headers).default_branch
-          $upstreamSha = (Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream/git/ref/heads/$defaultBranch" -Headers $headers).object.sha
 
+          # Get upstream master tree
+          $upstreamRef = Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream/git/ref/heads/master" -Headers $headers
+          $upstreamSha = $upstreamRef.object.sha
+          $upstreamTree = (Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream/git/commits/$upstreamSha" -Headers $headers).tree.sha
+
+          # Ensure fork exists
           try { Invoke-RestMethod -Uri "https://api.github.com/repos/$fork" -Headers $headers | Out-Null } catch {
+            Write-Host "Forking $upstream..."
             Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$upstream/forks" -Headers $headers | Out-Null
-            Start-Sleep -Seconds 5
+            Start-Sleep -Seconds 10
           }
 
-          $tree = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/trees" -Headers $headers -Body (@{
-            base_tree = $upstreamSha
-            tree = @(
-              @{ path = "$base/emtypyie.cli.yaml"; content = $versionManifest; mode = "100644"; type = "blob" }
-              @{ path = "$base/emtypyie.cli.installer.yaml"; content = $installerManifest; mode = "100644"; type = "blob" }
-              @{ path = "$base/emtypyie.cli.locale.en-US.yaml"; content = $localeManifest; mode = "100644"; type = "blob" }
-            )
-          } | ConvertTo-Json -Depth 5 -Compress)
+          # Create blobs
+          Write-Host "Creating blobs..."
+          $vBlob = (Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/blobs" -Method Post -Headers $headers -Body (@{
+            content = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($versionManifest))
+            encoding = "base64"
+          } | ConvertTo-Json)).sha
 
-          $commit = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/commits" -Headers $headers -Body (@{
+          $iBlob = (Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/blobs" -Method Post -Headers $headers -Body (@{
+            content = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($installerManifest))
+            encoding = "base64"
+          } | ConvertTo-Json)).sha
+
+          $lBlob = (Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/blobs" -Method Post -Headers $headers -Body (@{
+            content = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($localeManifest))
+            encoding = "base64"
+          } | ConvertTo-Json)).sha
+
+          # Create tree
+          Write-Host "Creating tree..."
+          $treeBody = @{
+            base_tree = $upstreamTree
+            tree = @(
+              @{ path = "$base/emtypyie.cli.yaml"; mode = "100644"; type = "blob"; sha = $vBlob }
+              @{ path = "$base/emtypyie.cli.installer.yaml"; mode = "100644"; type = "blob"; sha = $iBlob }
+              @{ path = "$base/emtypyie.cli.locale.en-US.yaml"; mode = "100644"; type = "blob"; sha = $lBlob }
+            )
+          } | ConvertTo-Json -Depth 5
+
+          $tree = Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/trees" -Method Post -Headers $headers -Body $treeBody
+
+          # Create commit
+          Write-Host "Creating commit..."
+          $commitBody = @{
             message = "Add emtypyie.cli v$version"
             tree = $tree.sha
             parents = @($upstreamSha)
-          } | ConvertTo-Json -Compress)
+          } | ConvertTo-Json -Compress
 
+          $commit = Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/commits" -Method Post -Headers $headers -Body $commitBody
+
+          # Create or update branch
           $branchName = "emtypyie-cli-v$version"
+          Write-Host "Creating branch $branchName..."
           try {
-            Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$fork/git/refs/heads/$branchName" -Headers $headers -Body (@{ sha = $commit.sha; force = $true } | ConvertTo-Json -Compress) | Out-Null
+            Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/refs/heads/$branchName" -Method Patch -Headers $headers -Body (@{
+              sha = $commit.sha
+              force = $true
+            } | ConvertTo-Json -Compress) | Out-Null
           } catch {
-            Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$fork/git/refs" -Headers $headers -Body (@{ ref = "refs/heads/$branchName"; sha = $commit.sha } | ConvertTo-Json -Compress) | Out-Null
+            Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/refs" -Method Post -Headers $headers -Body (@{
+              ref = "refs/heads/$branchName"
+              sha = $commit.sha
+            } | ConvertTo-Json -Compress) | Out-Null
           }
 
-          $pr = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$upstream/pulls" -Headers $headers -Body (@{
+          # Create PR
+          Write-Host "Creating PR..."
+          $prBody = @"
+          Add emtypyie.cli v$version
+
+          - Installer URL: $url
+          - Installer SHA256: $sha
+          - Installer Type: zip
+          "@
+
+          $pr = Invoke-RestMethod -Uri "https://api.github.com/repos/$upstream/pulls" -Method Post -Headers $headers -Body (@{
             title = "Add emtypyie.cli v$version"
             head = "emtypyie:$branchName"
-            base = $defaultBranch
-            body = "Add emtypyie.cli v$version`n`n- Installer URL: $url`n- Installer SHA256: $sha`n- Installer Type: zip"
+            base = "master"
+            body = $prBody
           } | ConvertTo-Json -Depth 5)
 
+          Write-Host ""
           Write-Host "PR created: $($pr.html_url)"
