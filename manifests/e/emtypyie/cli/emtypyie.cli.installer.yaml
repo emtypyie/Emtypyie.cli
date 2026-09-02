@@ -14,10 +14,7 @@ UpgradeBehavior: install
 ReleaseDate: 2026-09-02
 Installers:
   - Architecture: x64
-    Url: https://github.com/emtypyie/Emtypyie.cli/releases/download/v3.0.3/emtypyie-cli-windows-x64-3.0.3.zip
-    Sha256: a0552dc6ab414529bdd403b5eb98336d23d97dd321a0e849f3067469c875a502
-  - Architecture: x64
-    Url: https://github.com/emtypyie/Emtypyie.cli/releases/download/v3.0.3/emtypyie-cli-native-windows-x64-3.0.3.zip
-    Sha256: c26ec8e2482c5e793a49f7634fee89c5a710f884a3b03660bd8c4333d8e9ef15
+    InstallerUrl: https://github.com/emtypyie/Emtypyie.cli/releases/download/v3.0.3/emtypyie-cli-windows-x64-3.0.3.zip
+    InstallerSha256: a0552dc6ab414529bdd403b5eb98336d23d97dd321a0e849f3067469c875a502
 ManifestType: installer
 ManifestVersion: 1.6.0
