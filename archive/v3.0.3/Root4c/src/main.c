@@ -14,6 +14,15 @@
 #include "project.h"
 #include "util.h"
 
+/* ─── Shared ASCII art banner ─── */
+static const char BANNER[] =
+"___________        __                         .__                  .__  .__\n"
+"\\_   _____/ ______/  |_ ___.__. ______ ___.__.|__| ____       ____ |  | |__|\n"
+" |    __)_ /     \\   __<   |  | \\____ <   |  ||  |/ __ \\    _/ ___\n"
+" |        \\  Y Y  \\  |  \\___  | |  |_> >___  ||  \\  ___/    \\  \\___|  |_|  |\n"
+"/_______  /__|_|  /__|  / ____| |   __// ____||__|\\___  > /\\ \\___  >____/__|\n"
+"        \\/      \\/      \\/      |__|   \\/             \\/  \\/     \\/ \n";
+
 /* ─── JSON bridge mode (for the Electron GUI) ───
  * When --json is passed, commands emit a single line JSON object:
  *   {"cmd":"...","ok":true|false,"msg":"...","data":{...}}

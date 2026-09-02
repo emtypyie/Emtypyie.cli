@@ -18,7 +18,6 @@
 #include "bakafetch.h"
 #include "runtime.h"
 #include "download.h"
-#include "auth.h"
 #include "larpino.h"
 #include "effects.h"
 

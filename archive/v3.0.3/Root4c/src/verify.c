@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 
 static char *get_manifest_path(const char *project_name) {
     char *dev_dir = get_dev_dir(project_name);

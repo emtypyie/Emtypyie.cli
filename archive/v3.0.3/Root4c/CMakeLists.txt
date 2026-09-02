@@ -36,7 +36,7 @@ target_include_directories(emtypyie PRIVATE
 )
 
 if(WIN32)
-    target_link_libraries(emtypyie PRIVATE winhttp)
+    target_link_libraries(emtypyie PRIVATE winhttp bcrypt)
 else()
     find_package(CURL REQUIRED)
     find_package(OpenSSL REQUIRED)
