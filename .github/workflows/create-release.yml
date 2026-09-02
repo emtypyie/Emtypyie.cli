@@ -100,10 +100,10 @@ jobs:
           gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o project.o $SRC/project.c
           gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o bakafetch.o $SRC/bakafetch.c
           gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o runtime.o $SRC/runtime.c
-          gcc -std=c11 -Wall -Wextra -Wno-unused-parameter -I $SRC -I $LIB -c -o auth.o $SRC/auth.c
+    
           g++ -std=c++17 -Wall -Wextra -I $SRC -I $LIB -c -o larpino.o $SRC/larpino.cpp
           gcc -c -I $LIB -o cJSON.o $LIB/cJSON.c
-          g++ -o emtypyie.exe main.o shell.o theme.o util.o fetch.o download.o project.o bakafetch.o runtime.o auth.o larpino.o cJSON.o -lwinhttp -lstdc++
+          g++ -o emtypyie.exe main.o shell.o theme.o util.o fetch.o download.o project.o bakafetch.o runtime.o larpino.o cJSON.o -lwinhttp -lstdc++
 
       - name: Package native Windows x64 ZIP
         shell: pwsh
