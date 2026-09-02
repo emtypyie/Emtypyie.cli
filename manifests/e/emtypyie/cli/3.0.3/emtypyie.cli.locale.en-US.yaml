@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.locale.1.12.0.schema.json
 PackageIdentifier: emtypyie.cli
 PackageVersion: 3.0.3
 PackageLocale: en-US
@@ -18,5 +18,5 @@ Tags:
   - package-manager
   - developer-tools
   - terminal
-ManifestType: defaultLocale
+ManifestType: locale
 ManifestVersion: 1.12.0
