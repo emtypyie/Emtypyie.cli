@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.locale.1.6.0.schema.json
+PackageIdentifier: emtypyie.cli
+PackageVersion: 3.0.3
+PackageLocale: en-US
+Publisher: Emtypyie
+PublisherUrl: https://emtypyie.in
+PublisherSupportUrl: https://emtypyie.in/issues
+Author: Emtypyie
+PackageName: Emtypyie CLI
+PackageUrl: https://emtypyie.in/cli
+License: MIT
+ShortDescription: Modern CLI tool for managing dependencies, creating projects, and building applications
+Description: |
+  Emtypyie CLI is a modern package manager and project scaffolding tool.
+  Features include: npm-like package installation, project templates,
+  version management, integrity verification, and retro terminal UI.
+Tags:
+  - cli
+  - package-manager
+  - developer-tools
+  - terminal
+ManifestType: locale
+ManifestVersion: 1.6.0
