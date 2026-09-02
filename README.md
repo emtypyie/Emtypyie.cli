@@ -8,7 +8,7 @@
 
 ```sh
 # Windows (Winget)
-winget install myrachane.emtypyie-cli
+winget install emtypyie.cli
 
 # Windows (Chocolatey)
 choco install emtypyie-cli
@@ -148,7 +148,6 @@ Supports Python (pip), Node.js (npm), Rust (cargo), and system binaries.
 | `archive/vX.Y.Z/Root4c/`    | C CLI — portable single binary (primary, recommended) |
 | `archive/vX.Y.Z/Root4node/` | Node.js CLI — published to npm |
 | `archive/vX.Y.Z/Root4gui/`  | Electron GUI wrapper (frameless, multi-tab, streaming) |
-| `dev-cdn/` | Local CDN mirror with project metadata & templates |
 | `mainsite/`  | Website landing pages |
 | `manifests/` | Winget package manifests |
 | `choco/`     | Chocolatey package |
@@ -200,49 +199,6 @@ Electron-based GUI wrapper for the C CLI, targeting Windows x64.
 - **Update mechanism:** checks GitHub releases, downloads + extracts `emtypyie.exe` from asset zip
 - **Icon:** custom logo.ico, set as EXE and window icon
 - **Packaging:** `electron-packager` with `--asar`, `--extraResource` for the C binary
-
-## CDN Metadata Schema
-
-Projects on `cdn.emtypyie.in/dev/<project>/metadata.json` support extended fields:
-
-```json
-{
-  "name": "Project Name",
-  "version": "1.0.0",
-  "repo": "github/repo",
-  "description": "...",
-  "download": "url",
-  "filename": "file.exe",
-  "info": "...",
-  "packageManagers": {
-    "npm": { "name": "pkg", "installCmd": "npm install -g pkg", "version": "1.0.0" },
-    "winget": { "name": "id", "installCmd": "winget install id" },
-    "choco": { "name": "id", "installCmd": "choco install id" }
-  },
-  "techStack": [
-    { "name": "Python", "version": "3.11+", "required": true },
-    { "name": "Node.js", "version": "18+", "required": false }
-  ],
-  "dependencies": {
-    "python": ["requests>=2.28"],
-    "npm": ["chalk@^4.1"],
-    "system": ["git", "curl"]
-  },
-  "integrity": {
-    "files": [
-      { "path": "main.py", "sha256": "abc123...", "size": 1024 }
-    ],
-    "manifestSha256": "hash..."
-  },
-  "installScripts": {
-    "preInstall": "...",
-    "postInstall": "...",
-    "verify": "..."
-  }
-}
-```
-
-Local mirror available at `dev-cdn/` with same structure.
 
 ## Release artifacts
 
