@@ -4,7 +4,7 @@ PackageVersion: 3.0.3
 PackageLocale: en-US
 Publisher: Emtypyie
 PublisherUrl: https://emtypyie.in
-PublisherSupportUrl: https://emtypyie.in/issues
+PublisherSupportUrl: https://github.com/emtypyie/Emtypyie.cli/issues
 Author: Emtypyie
 PackageName: Emtypyie CLI
 PackageUrl: https://emtypyie.in/cli
