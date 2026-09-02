@@ -38,7 +38,7 @@
   },
   "installScripts": {
     "preInstall": "",
-    "postInstall": "pyielink --setup",
+    "postInstall": "",
     "verify": "pyielink --version"
   }
 }

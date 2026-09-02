@@ -51,6 +51,9 @@ typedef struct {
     char description[512];
     char download[1024];
     char repo[512];
+    char npm_install_cmd[512];
+    char pypi_install_cmd[512];
+    char cargo_install_cmd[512];
 } ProjectMeta;
 
 static int parse_metadata(const char *json, ProjectMeta *m) {
@@ -61,6 +64,37 @@ static int parse_metadata(const char *json, ProjectMeta *m) {
     v = json_string(json, "\"description\":"); if (v) { strncpy(m->description, v, sizeof(m->description)-1); free(v); }
     v = json_string(json, "\"download\":");  if (v) { strncpy(m->download, v, sizeof(m->download)-1); free(v); }
     v = json_string(json, "\"repo\":");      if (v) { strncpy(m->repo, v, sizeof(m->repo)-1); free(v); }
+
+    /* Parse package managers using cJSON for proper nested object handling */
+    cJSON *root = cJSON_Parse(json);
+    if (root) {
+        cJSON *pkg_mgrs = cJSON_GetObjectItem(root, "packageManagers");
+        if (pkg_mgrs) {
+            cJSON *npm = cJSON_GetObjectItem(pkg_mgrs, "npm");
+            if (npm) {
+                cJSON *installCmd = cJSON_GetObjectItem(npm, "installCmd");
+                if (cJSON_IsString(installCmd)) {
+                    strncpy(m->npm_install_cmd, installCmd->valuestring, sizeof(m->npm_install_cmd)-1);
+                }
+            }
+            cJSON *pypi = cJSON_GetObjectItem(pkg_mgrs, "pypi");
+            if (pypi) {
+                cJSON *installCmd = cJSON_GetObjectItem(pypi, "installCmd");
+                if (cJSON_IsString(installCmd)) {
+                    strncpy(m->pypi_install_cmd, installCmd->valuestring, sizeof(m->pypi_install_cmd)-1);
+                }
+            }
+            cJSON *cargo = cJSON_GetObjectItem(pkg_mgrs, "cargo");
+            if (cargo) {
+                cJSON *installCmd = cJSON_GetObjectItem(cargo, "installCmd");
+                if (cJSON_IsString(installCmd)) {
+                    strncpy(m->cargo_install_cmd, installCmd->valuestring, sizeof(m->cargo_install_cmd)-1);
+                }
+            }
+        }
+        cJSON_Delete(root);
+    }
+
     return strlen(m->name) > 0;
 }
 
@@ -250,7 +284,14 @@ void project_get(const char *name) {
     char *dev_dir = get_dev_dir(name);
     int installed = 0;
 
-    if (strlen(m.download) > 0) {
+    /* Check if package managers are available */
+    int has_package_manager = (strlen(m.npm_install_cmd) > 0 || strlen(m.pypi_install_cmd) > 0 || strlen(m.cargo_install_cmd) > 0);
+
+    if (has_package_manager && strlen(m.download) > 0) {
+        printf("  %s\n", retro_dim("Using package manager for cross-platform install..."));
+    }
+
+    if (strlen(m.download) > 0 && !has_package_manager) {
         int is_zip = (strstr(m.download, ".zip") != NULL);
         char fname[512];
         /* Prefer an explicit filename from metadata; else derive from the URL. */
@@ -301,8 +342,39 @@ void project_get(const char *name) {
             project_install_deps(dev_dir);
             printf("  %s %s %s\n", retro_accent(name), retro_dim("installed to"), retro_dim(dev_dir));
         }
+    } else if (strlen(m.npm_install_cmd) > 0 || strlen(m.pypi_install_cmd) > 0 || strlen(m.cargo_install_cmd) > 0) {
+        /* Install via package manager */
+        if (strlen(m.npm_install_cmd) > 0) {
+            printf("  %s %s\n", retro_dim("Installing via npm:"), retro(m.npm_install_cmd));
+            if (system(m.npm_install_cmd) == 0) {
+                printf("  %s\n", retro("npm package installed successfully."));
+                installed = 1;
+            } else {
+                printf("  %s\n", retro_err("npm install failed."));
+            }
+        } else if (strlen(m.pypi_install_cmd) > 0) {
+            printf("  %s %s\n", retro_dim("Installing via pip:"), retro(m.pypi_install_cmd));
+            if (system(m.pypi_install_cmd) == 0) {
+                printf("  %s\n", retro("pip package installed successfully."));
+                installed = 1;
+            } else {
+                printf("  %s\n", retro_err("pip install failed."));
+            }
+        } else if (strlen(m.cargo_install_cmd) > 0) {
+            printf("  %s %s\n", retro_dim("Installing via cargo:"), retro(m.cargo_install_cmd));
+            if (system(m.cargo_install_cmd) == 0) {
+                printf("  %s\n", retro("cargo package installed successfully."));
+                installed = 1;
+            } else {
+                printf("  %s\n", retro_err("cargo install failed."));
+            }
+        }
+        if (installed) {
+            project_install_deps(dev_dir);
+            printf("  %s %s %s\n", retro_accent(name), retro_dim("installed via package manager"), retro_dim(dev_dir));
+        }
     } else {
-        /* no download URL — maybe a meta-only project */
+        /* no download URL and no package manager — maybe a meta-only project */
         printf("  %s %s\n", retro_accent(name), retro_dim("(meta only, nothing to download)"));
     }
 

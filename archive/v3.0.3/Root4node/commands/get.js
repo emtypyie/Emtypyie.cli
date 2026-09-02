@@ -105,7 +105,20 @@ async function install(name, project) {
     return;
   }
 
-  if (project.download) {
+  // Prefer package manager installation (npm, pip, cargo) over direct download
+  // as they handle cross-platform binary downloads automatically
+  const hasPackageManager = project.packageManagers && (
+    project.packageManagers.npm ||
+    project.packageManagers.pypi ||
+    project.packageManagers.cargo
+  );
+
+  if (hasPackageManager && project.download) {
+    // Both available - prefer package manager for cross-platform support
+    console.log(t.retroDim('  Using package manager for cross-platform install...'));
+  }
+
+  if (project.download && !hasPackageManager) {
     const dest = path.join(t.getDevDir(name), project.filename || `${name}-setup.exe`);
 
     try {
@@ -119,6 +132,50 @@ async function install(name, project) {
     } catch (err) {
       console.log(`  ${t.retroErr('\u2717')} Download failed: ${err.message}`);
       process.exit(1);
+    }
+  } else if (project.packageManagers && project.packageManagers.npm) {
+    // Install via npm
+    const npmInfo = project.packageManagers.npm;
+    console.log(t.retroDim(`  Installing via npm: ${npmInfo.installCmd}`));
+    try {
+      execSync(npmInfo.installCmd, { stdio: 'inherit', timeout: 300000 });
+      console.log(t.retro('  npm package installed successfully.'));
+    } catch (err) {
+      console.log(`  ${t.retroErr('\u2717')} npm install failed: ${err.message}`);
+      process.exit(1);
+    }
+  } else if (project.packageManagers && project.packageManagers.pypi) {
+    // Install via pip
+    const pypiInfo = project.packageManagers.pypi;
+    console.log(t.retroDim(`  Installing via pip: ${pypiInfo.installCmd}`));
+    try {
+      execSync(pypiInfo.installCmd, { stdio: 'inherit', timeout: 300000 });
+      console.log(t.retro('  pip package installed successfully.'));
+    } catch (err) {
+      console.log(`  ${t.retroErr('\u2717')} pip install failed: ${err.message}`);
+      process.exit(1);
+    }
+  } else if (project.packageManagers && project.packageManagers.cargo) {
+    // Install via cargo
+    const cargoInfo = project.packageManagers.cargo;
+    console.log(t.retroDim(`  Installing via cargo: ${cargoInfo.installCmd}`));
+    try {
+      execSync(cargoInfo.installCmd, { stdio: 'inherit', timeout: 300000 });
+      console.log(t.retro('  cargo package installed successfully.'));
+    } catch (err) {
+      console.log(`  ${t.retroErr('\u2717')} cargo install failed: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
+  // Run postInstall script if defined
+  if (project.installScripts && project.installScripts.postInstall) {
+    console.log(t.retroDim(`  Running post-install: ${project.installScripts.postInstall}`));
+    try {
+      execSync(project.installScripts.postInstall, { stdio: 'inherit', timeout: 120000 });
+      console.log(t.retro('  Post-install completed.'));
+    } catch (err) {
+      console.log(t.retroWarn(`  Post-install had issues: ${err.message}`));
     }
   }
 
