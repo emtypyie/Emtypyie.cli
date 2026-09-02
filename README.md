@@ -87,7 +87,7 @@ On first launch, a desktop shortcut is created automatically. The GUI opens a fr
 | `/bf` | System info screen (bakafetch) |
 | `/docs <project>` | Open project docs |
 | `/shell` | Interactive mode |
-| `/larpino enable\|disable\|status` | LLAMA inference engine |
+| `/larpino enable\|disable\|status` | inference engine |
 | `/clear` | Clear screen |
 | `/wiki` | Open wiki.emtypyie.in |
 | `/changelog` | Open GitHub releases |
