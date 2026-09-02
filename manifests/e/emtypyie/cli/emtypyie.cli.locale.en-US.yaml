@@ -11,9 +11,8 @@ PackageUrl: https://emtypyie.in/cli
 License: MIT
 ShortDescription: Modern CLI tool for managing dependencies, creating projects, and building applications
 Description: |
-  Emtypyie CLI is a modern package manager and project scaffolding tool.
-  Features include: npm-like package installation, project templates,
-  version management, integrity verification, and retro terminal UI.
+  emtypyie.cli is the official package manager for EMTYPYIE.IN projects
+  and serves as easy setup for all.
 Tags:
   - cli
   - package-manager
