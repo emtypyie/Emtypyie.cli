@@ -1,4 +1,4 @@
-﻿# Emtypyie.cli@v3.0.3
+﻿# Emtypyie.cli@v3.0.4
 
 ![Emtypyie CLI](Emtypyie.cli.png)
 
@@ -10,8 +10,6 @@
 # Windows (Winget)
 winget install emtypyie.cli
 
-# Windows (Chocolatey)
-choco install emtypyie-cli
 
 # npm (all platforms)
 npm install -g emtypyie-cli
@@ -49,13 +47,7 @@ emtypyie --upgrade   # Self-update to latest version and restart
 
 On every launch, the CLI checks for updates in the background and notifies if a new version is available.
 
-## Launch — GUI (Windows only)
 
-Download `emtypyie.cli-Wrapper.zip` from the release, extract it anywhere, and run:
-
-```sh
-emtypyieWrapper.exe
-```
 
 On first launch, a desktop shortcut is created automatically. The GUI opens a frameless window with a custom title bar (drag to move, grouped split/settings/win controls). Each tab runs its own C engine session with streaming output and a status bar.
 
@@ -205,6 +197,5 @@ Each GitHub release ships three Windows artifacts:
 
 | ZIP | Contents | Source |
 |-----|----------|--------|
-| `emtypyie-cli-windows-x64-3.0.3.zip` | `emtypyie.exe` | Node.js (pkg) — npm release |
-| `emtypyie-cli-native-windows-x64-3.0.3.zip` | `emtypyie.exe` | C native build |
-| `emtypyie.cli-Wrapper.zip` | `emtypyieWrapper.exe` + resources | Electron GUI wrapper |
+| `emtypyie-cli-windows-x64-3.0.4.zip` | `emtypyie.exe` | Node.js (pkg) — npm release |
+| `emtypyie-cli-native-windows-x64-3.0.4.zip` | `emtypyie.exe` | C native build |
