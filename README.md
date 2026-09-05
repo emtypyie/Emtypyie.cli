@@ -26,6 +26,7 @@ emtypyie
 ```
 
 This prints the startup boot animation and drops you into the **interactive shell**.
+
 Type `/help` for commands, or `/about` for version info.
 
 To skip the boot animation:
@@ -76,7 +77,7 @@ On first launch, a desktop shortcut is created automatically. The GUI opens a fr
 | Command | Description |
 |---------|-------------|
 | `/help` | Show help |
-| `/list` | List available projects from CDN |
+| `/list` | List available projects |
 | `/get <project>` | Install a project |
 | `/get gcc` | Auto-install GCC/G++ compiler |
 | `/get larpino@1b` | Download a LLAMA GGUF model and load it |
@@ -166,8 +167,6 @@ Single-binary CLI written in C11/C++17, no runtime dependencies.
   - Top-k / temperature sampling
   - `/larpino enable` enters chat mode in the interactive shell
   - `/get larpino@1b` downloads a model from the CDN
-- **CDN registry:** fetches project list and metadata from `cdn.emtypyie.in/dev`
-- **Integrity verification:** SHA256 manifest tracking, tamper detection with warnings
 - **Auto-update check:** Background check on startup, `--upgrade` to update
 - **Project subcommands:** `--upgrade`, `-v`, `rebuild`, `verify`, `deps`, `info`
 - **Templates:** `/new`, `/init` with python-cli, node-cli, rust-cli
