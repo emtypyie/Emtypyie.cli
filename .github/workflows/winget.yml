@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (e.g. 3.0.3)'
+        description: 'Version (e.g. 3.0.4)'
         required: true
 
 permissions:
@@ -53,7 +53,7 @@ jobs:
           ManifestVersion: 1.12.0
           "@
 
-          # Installer manifest (zip with nested portable exe)
+          # Installer manifest (zip with portable exe inside)
           $installerManifest = @"
           # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
           PackageIdentifier: emtypyie.cli
@@ -67,7 +67,7 @@ jobs:
             - RelativeFilePath: emtypyie.exe
               PortableCommandAlias: emtypyie
           UpgradeBehavior: install
-          ReleaseDate: $((Get-Date).ToString("yyyy-MM-dd"))
+          ReleaseDate: $([DateTime]::Now.ToString('yyyy-MM-dd'))
           Installers:
             - Architecture: x64
               InstallerUrl: $url
@@ -144,13 +144,14 @@ jobs:
           $treeBody = @{
             base_tree = $upstreamTree
             tree = @(
-              @{ path = "$base/emtypyie.cli.yaml"; mode = "100644"; type = "blob"; sha = $vBlob }
-              @{ path = "$base/emtypyie.cli.installer.yaml"; mode = "100644"; type = "blob"; sha = $iBlob }
-              @{ path = "$base/emtypyie.cli.locale.en-US.yaml"; mode = "100644"; type = "blob"; sha = $lBlob }
+              @{path="$base/emtypyie.cli.yaml";mode="100644";type="blob";sha="$vBlob"},
+              @{path="$base/emtypyie.cli.locale.en-US.yaml";mode="100644";type="blob";sha="$lBlob"},
+              @{path="$base/emtypyie.cli.installer.yaml";mode="100644";type="blob";sha="$iBlob"}
             )
           } | ConvertTo-Json -Depth 5
 
           $tree = Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/trees" -Method Post -Headers $headers -Body $treeBody
+          Write-Host "Tree: $($tree.sha)"
 
           # Create commit
           Write-Host "Creating commit..."
@@ -160,9 +161,10 @@ jobs:
             parents = @($upstreamSha)
           } | ConvertTo-Json -Compress
 
-          $commit = Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/commits" -Method Post -Headers $headers -Body $commitBody
+          $commit = Invoke-RestMethod -Uri "https://api.github.com/repos/$fork/git/commits" -Method Post -Headers $headers -Body $body
+          Write-Host "Commit: $($commit.sha)"
 
-          # Create or update branch
+          # Create branch
           $branchName = "emtypyie-cli-v$version"
           Write-Host "Creating branch $branchName..."
           try {
