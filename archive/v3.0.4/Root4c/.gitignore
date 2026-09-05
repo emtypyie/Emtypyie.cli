@@ -1,0 +1,5 @@
+build/
+*.o
+*.exe
+*.zip
+*.zip.sha256
