@@ -1,4 +1,4 @@
-﻿# Emtypyie.cli@v3.0.4
+# Emtypyie.cli@v3.5.0
 
 ![Emtypyie CLI](Emtypyie.cli.png)
 
@@ -13,6 +13,9 @@ winget install emtypyie.cli
 
 # npm (all platforms)
 npm install -g emtypyie-cli
+
+# curl (download release zip directly)
+curl -L -o emtypyie-cli.zip https://github.com/emtypyie/emtypyie.cli/releases/download/v3.5.0/emtypyie-cli-windows-x64-3.5.0.zip
 ```
 
 ## Launch — C CLI
@@ -185,7 +188,7 @@ Electron-based GUI wrapper for the C CLI, targeting Windows x64.
 - **Streaming output:** per-line DOM writes — no buffer, visible during long operations
 - **Status bar:** per-tab footer showing current command + animated dot
 - **Settings panel:** accent swatches, font size, env variables
-- **Ricing section:** background image opacity slider (0–100%, persisted to localStorage)
+- **Ricing section:** background image opacity slider (0-100%, persisted to localStorage)
 - **Runtime check:** on startup, verifies `emtypyie.exe` exists; if missing, prompts to download from GitHub
 - **Update mechanism:** checks GitHub releases, downloads + extracts `emtypyie.exe` from asset zip
 - **Icon:** custom logo.ico, set as EXE and window icon
@@ -197,5 +200,5 @@ Each GitHub release ships three Windows artifacts:
 
 | ZIP | Contents | Source |
 |-----|----------|--------|
-| `emtypyie-cli-windows-x64-3.0.4.zip` | `emtypyie.exe` | Node.js (pkg) — npm release |
-| `emtypyie-cli-native-windows-x64-3.0.4.zip` | `emtypyie.exe` | C native build |
+| `emtypyie-cli-windows-x64-3.5.0.zip` | `emtypyie.exe` | Node.js (pkg) — npm release |
+| `emtypyie-cli-native-windows-x64-3.5.0.zip` | `emtypyie.exe` | C native build |

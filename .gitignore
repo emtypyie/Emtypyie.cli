@@ -6,13 +6,10 @@ node_modules/
 build/
 dist/
 dev/
+dev-cdn/
 manifests/
 *.zip
 *.zip.sha256
 mainsite/
 TODO.md
-<<<<<<< HEAD
-
-=======
 .env
->>>>>>> 7fd04f1b385b07fad79e4e4d8ffd76328c640347
