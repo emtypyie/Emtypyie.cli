@@ -1,0 +1,4 @@
+Pyielink v0.5.0
+[deps] npm install
+[install] npm install -g pyielink
+[start] pyielink --version

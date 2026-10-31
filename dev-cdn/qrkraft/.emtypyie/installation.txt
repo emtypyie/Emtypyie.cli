@@ -1,0 +1,5 @@
+QR KRAFT v1.01
+[install] git clone https://github.com/emtypyie/QRkRAFT.git
+[deps] dotnet restore QRkRAFT
+[build] dotnet build QRkRAFT --configuration Release
+[start] dotnet run --project QRkRAFT

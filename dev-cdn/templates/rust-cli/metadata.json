@@ -1,0 +1,28 @@
+{
+  "name": "Rust CLI Template",
+  "type": "template",
+  "version": "1.0.0",
+  "description": "Starter template for Rust CLI applications",
+  "files": [
+    {
+      "path": "Cargo.toml",
+      "content": "[package]\nname = \"{{name}}\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"{{description}}\"\n\n[[bin]]\nname = \"{{name}}\"\npath = \"src/main.rs\"\n\n[dependencies]\nclap = { version = \"4.4\", features = [\"derive\"] }\nanyhow = \"1.0\"\n"
+    },
+    {
+      "path": "src/main.rs",
+      "content": "use clap::Parser;\n\n/// {{name}} - {{description}}\n#[derive(Parser, Debug)]\n#[command(name = \"{{name}}\", version, about)]\nstruct Args {\n    /// Name to greet\n    #[arg(short, long, default_value = \"World\")]\n    name: String,\n}\n\nfn main() -> anyhow::Result<()> {\n    let args = Args::parse();\n    println!(\"Hello, {}! This is {{name}}\", args.name);\n    Ok(())\n}\n"
+    },
+    {
+      "path": "README.md",
+      "content": "# {{name}}\n\n{{description}}\n\n## Installation\n\n```bash\ncargo build --release\n```\n\n## Usage\n\n```bash\n./target/release/{{name}} --name YourName\n```\n"
+    },
+    {
+      "path": ".gitignore",
+      "content": "/target\nCargo.lock\n*.rs.bk\n"
+    }
+  ],
+  "dependencies": {
+    "cargo": ["clap@4.4", "anyhow@1.0"]
+  },
+  "postCreate": "cargo build --release"
+}

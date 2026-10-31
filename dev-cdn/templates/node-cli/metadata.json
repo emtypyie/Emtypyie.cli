@@ -1,0 +1,29 @@
+{
+  "name": "Node.js CLI Template",
+  "type": "template",
+  "version": "1.0.0",
+  "description": "Starter template for Node.js CLI applications",
+  "files": [
+    {
+      "path": "index.js",
+      "content": "#!/usr/bin/env node\n\"\"\"\n{{name}} - {{description}}\n\"\"\"\nimport { program } from 'commander';\nimport { name, version, description } from './package.json';\n\nprogram\n  .name(name)\n  .description(description)\n  .version(version);\n\nprogram\n  .command('hello [name]')\n  .description('Say hello')\n  .action((name = 'World') => {\n    console.log(`Hello, ${name}! This is {{name}}`);\n  });\n\nprogram.parse();\n",
+      "executable": true
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"{{name}}\",\n  \"version\": \"1.0.0\",\n  \"description\": \"{{description}}\",\n  \"type\": \"module\",\n  \"main\": \"index.js\",\n  \"bin\": {\n    \"{{name}}\": \"index.js\"\n  },\n  \"scripts\": {\n    \"start\": \"node index.js\",\n    \"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"\n  },\n  \"keywords\": [\"cli\", \"emtypyie\"],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"dependencies\": {\n    \"commander\": \"^11.1.0\"\n  }\n}\n"
+    },
+    {
+      "path": "README.md",
+      "content": "# {{name}}\n\n{{description}}\n\n## Installation\n\n```bash\nnpm install\n```\n\n## Usage\n\n```bash\nnpm start hello YourName\n```\n"
+    },
+    {
+      "path": ".gitignore",
+      "content": "node_modules/\n.env\n*.log\n"
+    }
+  ],
+  "dependencies": {
+    "npm": ["commander@^11.1.0"]
+  },
+  "postCreate": "npm install"
+}

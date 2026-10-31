@@ -1,0 +1,29 @@
+{
+  "name": "Python CLI Template",
+  "type": "template",
+  "version": "1.0.0",
+  "description": "Starter template for Python CLI applications",
+  "files": [
+    {
+      "path": "main.py",
+      "content": "#!/usr/bin/env python3\n\"\"\"\n{{name}} - {{description}}\n\"\"\"\nimport click\n\n@click.command()\n@click.option('--name', default='World', help='Name to greet')\ndef main(name):\n    click.echo(f'Hello, {name}! This is {{name}}')\n\nif __name__ == '__main__':\n    main()\n",
+      "executable": true
+    },
+    {
+      "path": "requirements.txt",
+      "content": "click>=8.1.0\nrequests>=2.31.0\n"
+    },
+    {
+      "path": "README.md",
+      "content": "# {{name}}\n\n{{description}}\n\n## Installation\n\n```bash\npip install -r requirements.txt\n```\n\n## Usage\n\n```bash\npython main.py --name YourName\n```\n"
+    },
+    {
+      "path": ".gitignore",
+      "content": "__pycache__/\n*.pyc\n.env\nvenv/\n"
+    }
+  ],
+  "dependencies": {
+    "python": ["click>=8.1.0", "requests>=2.31.0"]
+  },
+  "postCreate": "pip install -r requirements.txt"
+}

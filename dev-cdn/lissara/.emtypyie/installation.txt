@@ -1,0 +1,6 @@
+LiSSARA Core v0.1.0
+[deps] git clone https://github.com/emtypyie/LiSSARA.git . || git -C . pull --ff-only
+[deps] python -m pip install --upgrade pip
+[deps] python -m pip install -r requirements.txt
+[build] python -m PyInstaller --noconfirm --clean lissara.spec
+[install] powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\LiSSARA Core.lnk'; $s=(New-Object -ComObject WScript.Shell).CreateShortcut($p); $s.TargetPath=(Join-Path (Get-Location) 'dist\LiSSARA Core.exe'); $s.WorkingDirectory=(Join-Path (Get-Location) 'dist'); $s.Save()" || echo Shortcut creation skipped
